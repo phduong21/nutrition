@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="NutritionAgent.Tests/NutritionAgent.Tests.csproj" />
+  <Project Path="NutritionAgent/NutritionAgent.csproj" />
+</Solution>

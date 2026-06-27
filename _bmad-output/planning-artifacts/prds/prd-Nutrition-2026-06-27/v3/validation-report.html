@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PRD Validation v3: Nutrition Intelligence Agent</title>
+<style>
+  :root { --bg:#fafaf9; --surface:#fff; --border:#e7e5e4; --text:#1c1917; --muted:#78716c; --grade-exc:#16a34a; --sev-medium:#ca8a04; --sev-low:#64748b; }
+  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; line-height: 1.6; }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; }
+  .grade { background: var(--grade-exc); color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 600; }
+  .subtitle { color: var(--muted); font-size: 13px; font-family: monospace; }
+  .synthesis { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #16a34a; padding: 18px; border-radius: 8px; margin-bottom: 24px; }
+  .pivot { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 14px; }
+  .pivot table { width: 100%; border-collapse: collapse; }
+  .pivot td, .pivot th { padding: 8px; text-align: left; border-bottom: 1px solid #bfdbfe; }
+  .findings { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .badge-m { color: var(--sev-medium); font-weight: 600; }
+  .badge-l { color: var(--sev-low); }
+  footer { margin-top: 32px; font-size: 12px; color: var(--muted); font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1>Validation Report — v3 (rule-based engine)</h1>
+      <div class="subtitle">After AI/LLM removal · 2026-06-27T19:00:00Z</div>
+    </div>
+    <div class="grade">Excellent</div>
+  </header>
+
+  <div class="synthesis">
+    <p><strong>Build-ready for MVP.</strong> Pivot from Semantic Kernel to Nutrition Scoring Engine is internally consistent. Grade unchanged from v2. Two new <em>medium</em> findings: scoring thresholds in architecture but not yet in PRD.</p>
+  </div>
+
+  <div class="pivot">
+    <h3>v2 → v3 pivot</h3>
+    <table>
+      <tr><th>v2 (AI)</th><th>v3 (rules)</th></tr>
+      <tr><td>Semantic Kernel + OpenAI</td><td>Nutrition Scoring Engine</td></tr>
+      <tr><td>aiInsights</td><td>nutritionInsights</td></tr>
+      <tr><td>FR-2 Nutri-Score map</td><td>FR-2 calculated score 0–100</td></tr>
+      <tr><td>FR-4 agent tool invoke</td><td>FR-4 category comparison</td></tr>
+      <tr><td>OPENAI_API_KEY</td><td>No API keys</td></tr>
+    </table>
+  </div>
+
+  <div class="findings">
+    <h3>Findings</h3>
+    <p><span class="badge-m">medium</span> Health band numeric thresholds not in PRD (FR-2)</p>
+    <p><span class="badge-m">medium</span> Nutrient flag thresholds not in PRD (FR-3)</p>
+    <p><span class="badge-l">low</span> 4 additional — see validation-report.md</p>
+  </div>
+
+  <footer>
+    v2 Excellent (AI) → v3 Excellent (rules) · <a href="../validation-delta-v2-v3.md">validation-delta-v2-v3.md</a>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PRD Validation v1: Nutrition Intelligence Agent</title>
+<style>
+  :root { --bg:#fafaf9; --surface:#fff; --border:#e7e5e4; --text:#1c1917; --muted:#78716c; --grade-good:#65a30d; --sev-high:#ea580c; --sev-medium:#ca8a04; --sev-low:#64748b; }
+  body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; line-height: 1.6; }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; }
+  .grade { background: var(--grade-good); color: #fff; padding: 10px 18px; border-radius: 8px; font-weight: 600; }
+  .subtitle { color: var(--muted); font-size: 13px; font-family: monospace; }
+  .synthesis { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--muted); padding: 18px; border-radius: 8px; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .badge-h { color: var(--sev-high); font-weight: 600; }
+  .badge-m { color: var(--sev-medium); font-weight: 600; }
+  .badge-l { color: var(--sev-low); }
+  footer { margin-top: 32px; font-size: 12px; color: var(--muted); font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1>Validation Report — v1 (pre-fix)</h1>
+      <div class="subtitle">v1/prd-snapshot.md · 2026-06-27T16:00:00Z</div>
+    </div>
+    <div class="grade">Good</div>
+  </header>
+  <div class="synthesis">
+    <p><strong>Not build-ready.</strong> One high and four medium findings block clean handoff to architecture. Decision-readiness: <em>thin</em>.</p>
+  </div>
+  <h2>Findings</h2>
+  <table>
+    <tr><th>Severity</th><th>Finding</th><th>Location</th></tr>
+    <tr><td class="badge-h">high</td><td>FR-4 vs FR-5 response contract unclear</td><td>§4.2, §4.3</td></tr>
+    <tr><td class="badge-m">medium</td><td>LLM provider undecided</td><td>§8 OQ-1</td></tr>
+    <tr><td class="badge-m">medium</td><td>OFF API version unresolved</td><td>§8 OQ-3</td></tr>
+    <tr><td class="badge-m">medium</td><td>aiInsights schema undecided</td><td>FR-3</td></tr>
+    <tr><td class="badge-m">medium</td><td>Disclaimer not testable</td><td>§4.2 Notes</td></tr>
+    <tr><td class="badge-l">low</td><td>4 additional (see validation-report.md)</td><td>—</td></tr>
+  </table>
+  <footer>Superseded by v2/ · See validation-delta.md for what changed</footer>
+</div>
+</body>
+</html>

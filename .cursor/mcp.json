@@ -1,0 +1,20 @@
+{
+    "mcpServers": {
+      "fetch": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-fetch"]
+      },
+      "filesystem": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "/Users/phduong21/code/Nutrition/NutritionAgent"
+        ]
+      },
+      "playwright": {
+        "command": "npx",
+        "args": ["-y", "@playwright/mcp@latest"]
+      }
+    }
+  }

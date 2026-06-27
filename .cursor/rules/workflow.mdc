@@ -1,0 +1,135 @@
+---
+alwaysApply: false
+---
+# TDD Development Workflow — Nutrition Intelligence Agent
+
+## Context
+- Project: Nutrition Intelligence Agent
+- Stack: C# .NET 10, Minimal API, rule-based Nutrition Scoring Engine
+- External API: Open Food Facts v2 (no key needed)
+- Scoring: deterministic C# rules — sugar, fat, saturated fat, protein, fiber, salt per 100g
+- No LLM, no Semantic Kernel, no API keys required
+
+## Tools Available
+- fetch MCP → call Open Food Facts API
+- filesystem MCP → read/write project files
+- Playwright MCP → test HTTP endpoints
+- openspec → generate OpenAPI docs
+
+---
+
+## Phase 1: Planning
+BMAD đã chạy xong. Artifacts ở `_bmad-output/planning-artifacts/`.
+Đọc PRD + Architecture + Stories trước khi làm bất cứ thứ gì.
+
+---
+
+## Phase 2: Verify API Shape
+Trước khi viết bất kỳ C# model nào, dùng fetch MCP:
+GET https://world.openfoodfacts.org/api/v2/product/3017620422003.json
+GET https://world.openfoodfacts.org/api/v2/product/5000159407236.json
+
+Map fields thật vào models. Không đoán mò.
+
+Checklist nutriments (per 100g):
+- [ ] `sugars_100g`, `fat_100g`, `saturated-fat_100g`, `proteins_100g`, `fiber_100g`, `salt_100g`
+- [ ] `nutriscore_grade`, `categories_tags`, `product_name`, `brands`, `ingredients_text`
+- [ ] Note fields nullable vs required
+
+---
+
+## Phase 3: TDD — Write Tests First (RED)
+- Mỗi acceptance criteria trong Stories → 1 test
+- Chạy tests → phải ĐỎ trước khi code
+- KHÔNG implement cho đến khi tests đỏ được confirm
+
+Test cases bắt buộc:
+- GetProduct_ValidBarcode_Returns200()
+- GetProduct_InvalidBarcode_Returns404()
+- ScoringEngine_LowSugarHighFiber_ReturnsHigherScoreThanHighSugarLowFiber()
+- ScoringEngine_KnownFixture_ReturnsExpectedHealthBand()
+- GetProduct_ResponseContainsNutritionInsights()
+- ScoringEngine_HighSugar_FlagsConcernInInsights()
+- ScoringEngine_GoodProteinOrFiber_FlagsPositiveInInsights()
+- NutritionInsights_AlwaysContainsDisclaimerField()
+- GetAlternatives_PoorProduct_ReturnsBetterNutriScore()
+- GetProduct_DoesNotIncludeAlternativesArray()
+
+---
+
+## Phase 4: Implement (GREEN)
+Thứ tự bắt buộc:
+1. Domain records + `ScoringThresholds.cs` (record, immutable)
+2. `NutritionScoringEngine.cs` (score, health band, insights, category comparison, alternative rationale)
+3. `FoodFetcher.cs` (IHttpClientFactory — product, search, category peers)
+4. `ProductService.cs` (orchestrates fetch + scoring)
+5. `ProductEndpoints.cs` (Minimal API)
+6. `Program.cs` (DI wiring)
+
+Conventions:
+- record cho DTOs
+- IHttpClientFactory cho HTTP
+- Async/await toàn bộ
+- Result pattern cho errors
+- Tests trong `NutritionAgent.Tests/` (riêng project)
+
+Scoring Engine pattern bắt buộc:
+```csharp
+// Pure domain — no I/O, no LLM
+public NutritionInsights Score(Product product, CategoryAverages? averages)
+{
+    var score = CalculateScore(product.Nutriments);
+    var band = ClassifyHealthBand(score);
+    var concerns = FlagConcerns(product.Nutriments);   // high sugar, high sat fat
+    var positives = FlagPositives(product.Nutriments); // good protein, good fiber
+    var summary = CompareToCategory(product.Nutriments, averages);
+    return new NutritionInsights(summary, concerns, positives, Disclaimer);
+}
+```
+
+---
+
+## Phase 5: Code Review
+Checklist trước khi báo done:
+- [ ] Tests XANH
+- [ ] Không bare try/catch
+- [ ] Không hardcode OFF response
+- [ ] Scoring logic deterministic (same input → same output)
+- [ ] `nutritionInsights` có disclaimer field
+- [ ] `GET /products/{barcode}` không có `alternatives` array
+
+---
+
+## Phase 6: Integration Test (Playwright MCP)
+Sau khi `dotnet run` thành công, chạy Playwright MCP:
+- [ ] GET /products/3017620422003 → 200 + nutritionInsights non-empty
+- [ ] GET /products/invalid → 404
+- [ ] GET /products/3017620422003/alternatives → 200 + array non-empty
+- [ ] nutritionInsights.disclaimer non-empty
+- [ ] Response có nutritionScore + healthBand
+
+---
+
+## Phase 7: API Docs (openspec)
+Sau khi tests xanh:
+- [ ] Chạy openspec để generate OpenAPI doc
+- [ ] Save vào docs/openapi.json
+
+---
+
+## Phase 8: README
+Bắt buộc có:
+- What it does (2-3 câu)
+- No API keys required (optional: Open Food Facts user-agent)
+- How to run: dotnet run
+- Sample curl request + response JSON
+- Architecture decisions: tại sao rule-based engine, tại sao OFF v2, tại sao layered
+
+---
+
+## Rules tuyệt đối
+1. KHÔNG code trước khi tests đỏ
+2. KHÔNG hardcode API response
+3. KHÔNG dùng LLM/SK — mọi insights phải từ NutritionScoringEngine
+4. LUÔN chạy Playwright test trước khi báo story done
+5. LUÔN update story checkboxes sau mỗi task
