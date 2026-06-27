@@ -36,7 +36,7 @@ For the interview context, success means a reviewer can clone, run, hit document
 
 ### 2.3 Key User Journeys
 
-- **UJ-1.** Alex, a backend developer evaluating the repo, runs the service locally, calls `GET /products/3017620422003`, receives Nutri-Score, calculated nutrition score, health band, and `nutritionInsights` (including category comparison), then calls `/alternatives` when the score is poor and gets a ranked list with brief rationale.
+- **UJ-1.** Alex, a backend developer evaluating the repo, runs the service locally, calls `GET /products/3017620422003`, receives Nutri-Score, calculated nutrition score, health band, and `nutritionInsights`, then calls `/alternatives` when the score is poor and gets a ranked list with brief rationale.
 
 ## 3. Glossary
 
@@ -45,10 +45,10 @@ For the interview context, success means a reviewer can clone, run, hit document
 - **Nutri-Score grade** — Open Food Facts letter grade `a`–`e` for overall nutritional quality.
 - **Nutrition score** — Numeric score (0–100) calculated by the Nutrition Scoring Engine from per-100g nutriments: sugar, fat, saturated fat, protein, fiber, salt.
 - **Health band** — Enum classified by the engine: `Healthy`, `Moderate`, `Poor`, or `Unknown` when data is insufficient.
-- **Nutrition insights** — Structured object on the Product response: `{ summary, concerns, positives, disclaimer }` — rule-generated flags (e.g. high sugar, good fiber) and category comparison. Alternatives are not included here; see Alternative and FR-5.
-- **Category average** — Mean per-100g values for key nutriments across products in the same OFF category, used for comparison.
+- **Nutrition insights** — Structured object on the Product response: `{ summary, concerns, positives, disclaimer }` — rule-generated flags (e.g. high sugar, good fiber). Alternatives are not included here; see Alternative and FR-5.
+- **Category average** — ~~Mean per-100g values for same OFF category~~ Removed from product endpoint (OFF search latency); scoring engine retains optional comparison for unit tests only.
 - **Alternative** — Another Product in the same category with a better Nutri-Score, ranked and explained by rule-based rationale.
-- **Nutrition Scoring Engine** — Pure domain component that scores nutriments, classifies health band, generates insights, and compares against category averages. No LLM or external AI.
+- **Nutrition Scoring Engine** — Pure domain component that scores nutriments, classifies health band, and generates insights. No LLM or external AI.
 
 ## 4. Features
 
@@ -71,7 +71,7 @@ Integrator can retrieve a Product by barcode. Realizes UJ-1.
 
 ### 4.2 Nutrition Scoring & Insights
 
-**Description:** After Product fetch, the **Nutrition Scoring Engine** calculates `nutritionScore` from raw nutriments (sugar, fat, saturated fat, protein, fiber, salt per 100g), classifies `healthBand`, fetches category peers for averages, and returns structured `nutritionInsights` on the product response. All logic is deterministic and unit-testable. Realizes UJ-1.
+**Description:** After Product fetch, the **Nutrition Scoring Engine** calculates `nutritionScore` from raw nutriments (sugar, fat, saturated fat, protein, fiber, salt per 100g), classifies `healthBand`, and returns structured `nutritionInsights` on the product response. All logic is deterministic and unit-testable. Realizes UJ-1.
 
 #### FR-2: Calculate nutrition score and health band
 
@@ -94,13 +94,12 @@ Integrator receives `nutritionInsights` as `{ summary, concerns, positives, disc
 - Good protein or fiber → `positives` mentions protein or fiber as applicable.
 - Insights reference actual product nutriments—not generic placeholder text.
 
-#### FR-4: Category comparison on product response
+#### FR-4: Category comparison on product response — **Removed**
 
-Engine compares product nutriments against **category averages** (same OFF category) and surfaces comparison in `nutritionInsights.summary` or structured flags.
+~~Engine compares product nutriments against category averages via OFF search.~~ Removed from MVP: OFF v2 search is too slow/unreliable (~60s gateway timeouts). Product `nutritionInsights.summary` is derived from product nutriments only.
 
 **Consequences (testable):**
-- Product with category → `nutritionInsights` references category (e.g. "above/below category average for sugar").
-- Product without category → comparison omitted gracefully; response still 200 with other insights.
+- `GET /products/{barcode}` makes a single OFF product fetch (no search call).
 - `GET /products/{barcode}` does **not** include an `alternatives` array — alternatives payload is FR-5 only.
 
 **Out of Scope:** Inline alternatives on the product response.
@@ -146,7 +145,7 @@ Service exposes OpenAPI (development) and README with setup, optional env vars, 
 
 - .NET minimal API (`NutritionAgent` project).
 - Open Food Facts **v2** product fetch + v2 structured search.
-- **Nutrition Scoring Engine** — score, health band, rule-based insights, category comparison.
+- **Nutrition Scoring Engine** — score, health band, rule-based insights.
 - Endpoints: `GET /products/{barcode}`, `GET /products/{barcode}/alternatives`.
 - TDD: red tests per workflow.mdc before implementation.
 - Integration verification with demo barcodes `3017620422003`, `5000159407236`.

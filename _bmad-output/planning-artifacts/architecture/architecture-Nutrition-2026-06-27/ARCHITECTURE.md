@@ -10,8 +10,7 @@ A **stateless .NET minimal API** that:
 
 1. Looks up packaged food by barcode via **Open Food Facts v2**
 2. Runs a **rule-based Nutrition Scoring Engine** to calculate nutrition score, classify health band, and generate insights
-3. Compares product nutriments against **category averages**
-4. Exposes a separate endpoint for **healthier alternatives** (better Nutri-Score, same category)
+3. Exposes a separate endpoint for **healthier alternatives** (better Nutri-Score, same category)
 
 No UI, no database, no auth, **no LLM or API keys** — optimized for a **1–2 day interview assignment** with zero external AI cost.
 
@@ -23,7 +22,7 @@ No UI, no database, no auth, **no LLM or API keys** — optimized for a **1–2 
 | **Minimal API** | PRD + workflow target; less boilerplate than controllers |
 | **Rule-based engine** | Deterministic, testable, no OpenAI costs; demonstrates domain logic clearly |
 | **Open Food Facts v2** | PRD decision: v2 has structured search for alternatives and category peers; v3 migration deferred |
-| **Separate test project** | `NutritionAgent.Tests/` keeps TDD visible and matches workflow conventions |
+| **Separate test project** | `NutritionAgent/NutritionAgent.Tests/` keeps TDD visible and co-located with the app project |
 
 ## 3. System context
 
@@ -35,7 +34,7 @@ flowchart TB
 
   Client -->|GET /products/barcode| API
   Client -->|GET /products/barcode/alternatives| API
-  API -->|product + search| OFF
+  API -->|product; search for alternatives only| OFF
 ```
 
 **External dependencies**
@@ -60,7 +59,7 @@ Infrastructure/     → FoodFetcher (OFF HTTP)
 
 | Route | Behavior |
 | --- | --- |
-| `GET /products/{barcode}` | Fetch product → score → insights + category comparison → return |
+| `GET /products/{barcode}` | Fetch product → score → insights → return |
 | `GET /products/{barcode}/alternatives` | Fetch source → search better Nutri-Score in category → rule-based rank/rationale |
 
 **Important:** Product response does **not** include `alternatives` (FR-4/AD-6). Alternatives are **only** on the dedicated route.
@@ -70,9 +69,8 @@ Infrastructure/     → FoodFetcher (OFF HTTP)
 **`ProductService`** — orchestrates each request:
 
 1. `FoodFetcher.GetProductAsync(barcode)`
-2. `FoodFetcher.GetCategoryAveragesAsync(category)` (for FR-4)
-3. `NutritionScoringEngine.Score(product, categoryAverages)` → `nutritionScore`, `healthBand`, `nutritionInsights`
-4. For alternatives route: search OFF → `NutritionScoringEngine.RankAlternatives(source, candidates)`
+2. `NutritionScoringEngine.Score(product, categoryAverages: null)` → `nutritionScore`, `healthBand`, `nutritionInsights`
+3. For alternatives route: search OFF → `NutritionScoringEngine.RankAlternatives(source, candidates)`
 
 ### 4.3 Domain layer — Nutrition Scoring Engine
 
@@ -83,17 +81,15 @@ Infrastructure/     → FoodFetcher (OFF HTTP)
 | **Calculate score** (0–100) | Weight sugar, saturated fat, salt negatively; protein, fiber positively |
 | **Classify health band** | Score ≥ 70 → `Healthy`; 40–69 → `Moderate`; &lt; 40 → `Poor` |
 | **Generate insights** | Flag high sugar, high saturated fat in `concerns`; good protein/fiber in `positives` |
-| **Category comparison** | Compare each nutrient to category average; summarize in `summary` |
 | **Alternative rationale** | Rule template: better Nutri-Score + lower sugar vs source |
 
 Thresholds live in `ScoringThresholds.cs` — constants, fully unit-tested.
 
 ### 4.4 Infrastructure layer
 
-- **`FoodFetcher`** — `IHttpClientFactory` client `"OpenFoodFacts"`
+- **`FoodFetcher`** — `IHttpClientFactory` clients `"OpenFoodFacts"` + `"OpenFoodFactsSearch"`
   - `GetProductAsync(barcode)` → OFF v2 product JSON
-  - `SearchAlternativesAsync(category, minGrade)` → OFF v2 search
-  - `GetCategoryProductsAsync(category)` → OFF v2 search for category averages
+  - `SearchAlternativesAsync(source)` → Search-a-licious full-text search (alternatives endpoint only)
 
 ## 5. Key data contracts
 
@@ -109,7 +105,7 @@ Thresholds live in `ScoringThresholds.cs` — constants, fully unit-tested.
   "nutritionScore": 32,
   "healthBand": "Poor",
   "nutritionInsights": {
-    "summary": "Below category average for sugar; high saturated fat per 100g.",
+    "summary": "Nutrition profile for Nutella based on per-100g nutriments.",
     "concerns": "High sugar (18g/100g). High saturated fat (12g/100g).",
     "positives": "Good protein content (8g/100g).",
     "disclaimer": "This information is for educational purposes only and is not medical advice."
@@ -144,8 +140,8 @@ Thresholds live in `ScoringThresholds.cs` — constants, fully unit-tested.
 
 | Project | What |
 | --- | --- |
-| `NutritionAgent.Tests/Unit/` | `NutritionScoringEngine` — score, band, insight flags, category comparison |
-| `NutritionAgent.Tests/Integration/` | WebApplicationFactory — endpoints, `nutritionInsights` shape, disclaimer |
+| `NutritionAgent/NutritionAgent.Tests/Unit/` | `NutritionScoringEngine` — score, band, insight flags, category comparison |
+| `NutritionAgent/NutritionAgent.Tests/Integration/` | WebApplicationFactory — endpoints, `nutritionInsights` shape, disclaimer |
 
 Mandatory tests (from workflow): align 1:1 with PRD FRs — see `workflow.mdc` Phase 3.
 

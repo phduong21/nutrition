@@ -2,9 +2,10 @@
 
 A stateless .NET 10 minimal API that looks up packaged food by barcode via [Open Food Facts v2](https://world.openfoodfacts.org), runs a **rule-based Nutrition Scoring Engine** (no LLM, no API keys), and returns nutrition score, health band, insights, and healthier alternatives.
 
+
 ## What it does
 
-- **`GET /products/{barcode}`** — fetch product data, compute a 0–100 nutrition score, classify a health band, and return rule-generated `nutritionInsights` with optional category comparison.
+- **`GET /products/{barcode}`** — fetch product data, compute a 0–100 nutrition score, classify a health band, and return rule-generated `nutritionInsights`.
 - **`GET /products/{barcode}/alternatives`** — find same-category products with a strictly better Nutri-Score and rule-generated rationale.
 
 ## Requirements
@@ -23,64 +24,64 @@ The API listens on `http://localhost:5163` (see `Properties/launchSettings.json`
 
 ### Swagger UI (Development)
 
-Chạy app rồi mở trình duyệt:
+With the app running, open in a browser:
 
-```bash
-cd NutritionAgent
-dotnet run
-```
+- **Swagger UI:** [http://localhost:5163/swagger](http://localhost:5163/swagger) — interactive API explorer
+- **OpenAPI JSON:** [http://localhost:5163/openapi/v1.json](http://localhost:5163/openapi/v1.json) — spec for Postman/Insomnia import
 
-- **Swagger UI:** [http://localhost:5163/swagger](http://localhost:5163/swagger) — giao diện thử API trực tiếp
-- **OpenAPI JSON:** [http://localhost:5163/openapi/v1.json](http://localhost:5163/openapi/v1.json) — spec để import Postman/Insomnia
-
-Swagger chỉ bật khi `ASPNETCORE_ENVIRONMENT=Development` (mặc định trong `launchSettings.json`).
+Swagger is enabled only when `ASPNETCORE_ENVIRONMENT=Development` (the default in `launchSettings.json`).
 
 ## API reference
 
-| Method | Endpoint | Mô tả |
+| Method | Endpoint | Description |
 | --- | --- | --- |
-| `GET` | `/products/{barcode}` | Tra cứu sản phẩm + điểm dinh dưỡng + insights |
-| `GET` | `/products/{barcode}/alternatives` | Gợi ý sản phẩm cùng loại có Nutri-Score tốt hơn |
+| `GET` | `/products/{barcode}` | Product lookup with nutrition score and insights |
+| `GET` | `/products/{barcode}/alternatives` | Same-category alternatives with a better Nutri-Score |
 
 ### `GET /products/{barcode}`
 
-**Tham số:** `barcode` — mã vạch EAN/UPC (ví dụ `3017620422003` = Nutella).
+**Parameter:** `barcode` — EAN/UPC barcode (e.g. `3017620422003` for Nutella).
 
-**Response 200** — JSON gồm:
+**Response 200** — JSON fields:
 
-| Field | Kiểu | Ý nghĩa |
+| Field | Type | Meaning |
 | --- | --- | --- |
-| `productName` | string | Tên sản phẩm |
-| `brands` | string | Thương hiệu |
-| `nutriments` | object | Đường, mỡ, protein, chất xơ, muối (g/100g) |
-| `nutriscoreGrade` | string? | Nutri-Score OFF (`a`–`e`) |
-| `ingredientsText` | string? | Danh sách thành phần |
-| `nutritionScore` | int | Điểm 0–100 (rule-based) |
+| `productName` | string | Product name |
+| `brands` | string | Brand(s) |
+| `nutriments` | object | Sugar, fat, protein, fiber, salt (g/100g) |
+| `nutriscoreGrade` | string? | Open Food Facts Nutri-Score (`a`–`e`) |
+| `ingredientsText` | string? | Ingredient list |
+| `nutritionScore` | int | Rule-based score 0–100 |
 | `healthBand` | string | `Excellent` / `Good` / `Fair` / `Poor` |
 | `nutritionInsights` | object | `summary`, `concerns`, `positives`, `disclaimer` |
 
-**Lỗi:**
+**Errors:**
 
-| Status | Khi nào |
+| Status | When |
 | --- | --- |
-| `404` | Barcode không tồn tại trên Open Food Facts |
-| `502` | Open Food Facts không phản hồi |
+| `404` | Barcode not found on Open Food Facts |
+| `502` | Open Food Facts did not respond |
 
 ### `GET /products/{barcode}/alternatives`
 
-**Response 200** — JSON gồm `sourceBarcode` và mảng `alternatives`. Mỗi phần tử có `barcode`, `productName`, `nutriscoreGrade`, `rationale`.
+**Response 200** — JSON with `sourceBarcode` and an `alternatives` array. Each item includes `barcode`, `productName`, `nutriScoreGrade`, and `rationale`.
 
-**Lưu ý:** Endpoint này **không** nằm trong response của `GET /products/{barcode}` — gọi riêng khi cần gợi ý thay thế.
+**Note:** Alternatives are **not** included in the `GET /products/{barcode}` response — call this endpoint separately when you need swap suggestions.
 
 Optional configuration via environment variable or `appsettings.json`:
 
 ```json
 {
   "OpenFoodFacts": {
+    "BaseUrl": "https://world.openfoodfacts.org",
+    "SearchBaseUrl": "https://search.openfoodfacts.org",
     "UserAgent": "NutritionAgent/1.0 (your-contact)"
   }
 }
 ```
+
+- **Product lookup** uses `BaseUrl` — Open Food Facts v2 (`/api/v2/product/{barcode}.json`).
+- **Alternatives search** uses `SearchBaseUrl` — [Search-a-licious](https://search.openfoodfacts.org) (`/search?q=…`). Nutri-Score filtering is done client-side (the `nutrition_grades` query param is unreliable on Search-a-licious).
 
 ## Sample requests
 
@@ -109,7 +110,7 @@ Example response (abbreviated):
   "nutritionScore": 23,
   "healthBand": "Poor",
   "nutritionInsights": {
-    "summary": "Compared to category average: sugar is above category average; …",
+    "summary": "Nutrition profile for Nutella based on per-100g nutriments.",
     "concerns": "High sugar (56.3/100g). High saturated fat (10.6/100g).",
     "positives": "No standout positive nutrient highlights.",
     "disclaimer": "This information is for educational purposes only and is not medical advice."
@@ -123,6 +124,22 @@ Example response (abbreviated):
 curl -s http://localhost:5163/products/3017620422003/alternatives | jq
 ```
 
+Example response:
+
+```json
+{
+  "sourceBarcode": "3017620422003",
+  "alternatives": [
+    {
+      "barcode": "7613035539679",
+      "productName": "Weetabix",
+      "nutriScoreGrade": "b",
+      "rationale": "Nutri-Score B vs E — significantly lower sugar and saturated fat"
+    }
+  ]
+}
+```
+
 **Unknown barcode (404):**
 
 ```bash
@@ -133,8 +150,10 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:5163/products/invalid
 
 | Decision | Why |
 | --- | --- |
+| **Stateless design** | No DB, no cache — every request fetches live; keeps scope honest and infra-free |
+| **TDD** | Tests written before implementation; unit + integration coverage per story acceptance criteria |
 | **Rule-based scoring engine** | Deterministic, fully unit-testable, zero AI cost; demonstrates domain logic clearly |
-| **Open Food Facts v2** | Public product + search API with no key; v2 supports category search needed for alternatives |
+| **Open Food Facts v2 + Search-a-licious** | Product read via v2 (no key); alternatives via Search-a-licious full-text search (~1s vs v2 search timeouts) |
 | **Layered design** | `Endpoints` → `Services` → `Domain`; `Infrastructure` → `Domain` only — clear separation without hexagonal ceremony |
 
 ## Project structure
@@ -142,12 +161,12 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:5163/products/invalid
 ```
 NutritionAgent/
   Domain/           NutritionScoringEngine, records, thresholds
-  Infrastructure/   FoodFetcher (OFF HTTP client)
+  Infrastructure/   FoodFetcher (OFF product + Search-a-licious HTTP clients)
   Services/         ProductService orchestration, Result pattern
   Endpoints/        Minimal API routes
-NutritionAgent.Tests/
-  Unit/             Scoring engine, fetcher, service tests
-  Integration/      WebApplicationFactory endpoint tests
+  NutritionAgent.Tests/
+    Unit/             Scoring engine, fetcher, service tests
+    Integration/      WebApplicationFactory endpoint tests
 ```
 
 ## Tests

@@ -1,15 +1,10 @@
 {
-  "count": 2,
-  "page": 1,
-  "page_count": 1,
-  "page_size": 10,
-  "products": [
+  "hits": [
     {
       "code": "3333333333333",
       "product_name": "Better Spread",
       "brands": "Brand C",
       "nutriscore_grade": "b",
-      "categories_tags": ["en:spreads"],
       "nutriments": {
         "sugars_100g": 30,
         "fat_100g": 15,
@@ -24,7 +19,6 @@
       "product_name": "Best Spread",
       "brands": "Brand D",
       "nutriscore_grade": "a",
-      "categories_tags": ["en:spreads"],
       "nutriments": {
         "sugars_100g": 10,
         "fat_100g": 8,
@@ -34,5 +28,8 @@
         "salt_100g": 0.2
       }
     }
-  ]
+  ],
+  "page": 1,
+  "page_size": 20,
+  "count": 2
 }

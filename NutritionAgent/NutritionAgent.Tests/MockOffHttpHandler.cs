@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using NutritionAgent.Infrastructure;
 
 namespace NutritionAgent.Tests;
 
@@ -50,5 +51,26 @@ internal static class TestFixtures
         {
             BaseAddress = new Uri("https://world.openfoodfacts.org/")
         };
+    }
+
+    public static FoodFetcher CreateFoodFetcher(
+        Action<MockOffHttpHandler>? configureProduct = null,
+        Action<MockOffHttpHandler>? configureSearch = null)
+    {
+        var productHandler = new MockOffHttpHandler();
+        configureProduct?.Invoke(productHandler);
+        var productClient = new HttpClient(productHandler)
+        {
+            BaseAddress = new Uri("https://world.openfoodfacts.org/")
+        };
+
+        var searchHandler = new MockOffHttpHandler();
+        configureSearch?.Invoke(searchHandler);
+        var searchClient = new HttpClient(searchHandler)
+        {
+            BaseAddress = new Uri("https://search.openfoodfacts.org/")
+        };
+
+        return new FoodFetcher(productClient, searchClient);
     }
 }

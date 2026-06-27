@@ -38,4 +38,4 @@ Verified against live API responses for barcodes `3017620422003` (Nutella) and `
 
 **5000159407236 (Mars):** high sugar (61.6g), fiber 1.24g, nutriscore `e`.
 
-Fixtures: `NutritionAgent.Tests/Fixtures/off-*.json`
+Fixtures: `NutritionAgent/NutritionAgent.Tests/Fixtures/off-*.json`

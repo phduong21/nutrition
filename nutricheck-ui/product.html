@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NutriCheck - Product Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#006947",
+        "on-primary": "#ffffff",
+        "primary-container": "#02855b",
+        "surface": "#fff8f6",
+        "surface-container": "#f8ebe6",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#fef1ec",
+        "surface-container-high": "#f2e6e1",
+        "surface-variant": "#ede0db",
+        "on-surface": "#201a18",
+        "on-surface-variant": "#3e4942",
+        "outline": "#6e7a72",
+        "outline-variant": "#bdcac0",
+        "border-subtle": "#E2E8E5",
+        "background-surface": "#F8FAF9",
+        "nutri-score-a": "#038141",
+        "nutri-score-b": "#85BB2F",
+        "nutri-score-c": "#FECB02",
+        "nutri-score-d": "#EE8100",
+        "nutri-score-e": "#E63E11",
+        "data-mono": "#663333",
+        "error": "#ba1a1a",
+        "secondary": "#b12b27",
+      },
+      fontFamily: {
+        "sans": ["Public Sans", "sans-serif"],
+        "mono": ["Courier Prime", "monospace"],
+      },
+      maxWidth: { "container": "1200px" },
+    }
+  }
+}
+</script>
+<style>
+  body { background-color: #F8FAF9; font-family: "Public Sans", sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col text-on-surface bg-background-surface">
+
+<!-- Nav -->
+<header class="bg-surface fixed top-0 w-full z-50 border-b border-border-subtle">
+  <div class="max-w-container mx-auto px-4 md:px-12 flex justify-between items-center h-16">
+    <div class="flex items-center gap-6">
+      <a href="index.html" class="text-2xl font-bold text-primary tracking-tight">NutriCheck</a>
+      <nav class="hidden md:flex gap-6 ml-4 text-sm">
+        <a href="index.html" class="text-on-surface-variant hover:text-primary transition-colors">Home</a>
+        <a href="#" class="text-primary font-bold border-b-2 border-primary pb-1">Products</a>
+      </nav>
+    </div>
+    <div class="relative hidden md:block w-56">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+      <input id="nav-search"
+        class="w-full pl-10 pr-4 py-2 border border-border-subtle bg-white rounded-full text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none placeholder:text-outline-variant transition-colors"
+        placeholder="Enter barcode..."
+        type="text"/>
+    </div>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="flex-grow pt-20 pb-12">
+  <div class="max-w-container mx-auto px-4 md:px-12">
+
+    <!-- Breadcrumb -->
+    <div id="breadcrumb" class="mb-6 flex items-center gap-2 text-sm text-on-surface-variant">
+      <a href="index.html" class="flex items-center gap-1 hover:text-primary transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-base">arrow_back</span>
+        Back to Search
+      </a>
+      <span class="text-outline-variant px-1">|</span>
+      <span id="breadcrumb-barcode" class="font-semibold text-on-surface font-mono text-sm"></span>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loading" class="grid grid-cols-1 md:grid-cols-12 gap-6 animate-pulse">
+      <div class="md:col-span-5 flex flex-col gap-6">
+        <div class="bg-white border border-border-subtle rounded-xl overflow-hidden">
+          <div class="h-48 bg-[#F0F0F0]"></div>
+          <div class="p-6 flex flex-col gap-3">
+            <div class="h-3 bg-[#F0F0F0] rounded w-1/3"></div>
+            <div class="h-6 bg-[#F0F0F0] rounded w-2/3"></div>
+            <div class="h-8 bg-[#F0F0F0] rounded-full w-1/2 mt-2"></div>
+          </div>
+        </div>
+        <div class="bg-white border border-border-subtle rounded-xl p-6">
+          <div class="h-4 bg-[#F0F0F0] rounded w-1/4 mb-4"></div>
+          <div class="space-y-2">
+            <div class="h-3 bg-[#F0F0F0] rounded"></div>
+            <div class="h-3 bg-[#F0F0F0] rounded w-5/6"></div>
+            <div class="h-3 bg-[#F0F0F0] rounded w-4/6"></div>
+          </div>
+        </div>
+      </div>
+      <div class="md:col-span-7 flex flex-col gap-6">
+        <div class="grid grid-cols-2 gap-6">
+          <div class="bg-white border border-border-subtle rounded-xl p-6 h-32 bg-[#F0F0F0]"></div>
+          <div class="bg-white border border-border-subtle rounded-xl p-6 h-32 bg-[#F0F0F0]"></div>
+        </div>
+        <div class="bg-white border border-border-subtle rounded-xl h-48 bg-[#F0F0F0]"></div>
+        <div class="bg-white border border-border-subtle rounded-xl h-48 bg-[#F0F0F0]"></div>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div id="error-state" class="hidden flex flex-col items-center justify-center py-24 gap-4 text-center">
+      <span class="material-symbols-outlined text-6xl text-outline-variant">error_outline</span>
+      <h2 id="error-title" class="text-xl font-semibold text-on-surface">Something went wrong</h2>
+      <p id="error-detail" class="text-sm text-on-surface-variant max-w-sm"></p>
+      <a href="index.html" class="mt-2 px-6 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-container transition-colors">
+        Back to Search
+      </a>
+    </div>
+
+    <!-- Content (hidden until data loads) -->
+    <div id="content" class="hidden grid grid-cols-1 md:grid-cols-12 gap-6">
+
+      <!-- Left column: 5 cols -->
+      <div class="md:col-span-5 flex flex-col gap-6">
+
+        <!-- Product header card -->
+        <div class="bg-white border border-border-subtle rounded-xl overflow-hidden">
+          <div class="h-48 bg-surface-variant flex items-center justify-center border-b border-border-subtle">
+            <span class="material-symbols-outlined text-6xl text-outline opacity-40">fastfood</span>
+          </div>
+          <div class="p-6 flex flex-col gap-2">
+            <div id="product-brand" class="text-xs font-bold uppercase tracking-wider text-on-surface-variant"></div>
+            <h1 id="product-name" class="text-2xl font-bold text-on-surface"></h1>
+            <!-- Nutri-Score badge -->
+            <div class="mt-3 flex items-center gap-3">
+              <span class="text-sm text-on-surface-variant">Nutri-Score:</span>
+              <div id="nutri-score-badge" class="inline-flex rounded-full overflow-hidden border border-border-subtle bg-surface h-8 items-center px-2 py-1 gap-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ingredients card -->
+        <div class="bg-white border border-border-subtle rounded-xl p-6">
+          <h2 class="text-lg font-semibold text-on-surface mb-3 flex items-center justify-between">
+            Ingredients
+            <span class="material-symbols-outlined text-outline-variant cursor-pointer text-lg" id="ingredients-toggle">expand_more</span>
+          </h2>
+          <div id="ingredients-text" class="text-sm text-on-surface-variant leading-relaxed"></div>
+        </div>
+
+      </div>
+
+      <!-- Right column: 7 cols -->
+      <div class="md:col-span-7 flex flex-col gap-6">
+
+        <!-- Score + Summary row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+          <!-- Score card -->
+          <div id="score-card" class="bg-white border border-border-subtle border-l-4 rounded-r-xl p-6 flex items-center gap-5">
+            <div class="relative w-24 h-24 flex-shrink-0">
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#ede0db" stroke-width="9"/>
+                <circle id="score-ring" cx="50" cy="50" r="40" fill="transparent" stroke-width="9" stroke-linecap="round"
+                  stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center flex-col">
+                <span id="score-value" class="text-2xl font-bold text-on-surface leading-none"></span>
+                <span class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wide">/100</span>
+              </div>
+            </div>
+            <div>
+              <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Health Band</div>
+              <div id="health-band" class="text-xl font-semibold"></div>
+            </div>
+          </div>
+
+          <!-- Summary card -->
+          <div class="bg-white border border-border-subtle rounded-xl p-6 flex flex-col justify-center">
+            <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Analysis Summary</div>
+            <p id="summary-text" class="text-base text-on-surface leading-snug"></p>
+          </div>
+
+        </div>
+
+        <!-- Insights card: Concerns + Positives -->
+        <div class="bg-white border border-border-subtle rounded-xl overflow-hidden">
+          <!-- Concerns -->
+          <div class="border-l-4 border-l-error bg-[#fff8f6] p-6 border-b border-border-subtle">
+            <h3 class="text-base font-semibold text-on-surface mb-3 flex items-center gap-2">
+              <span class="material-symbols-outlined text-error text-lg" style="font-variation-settings:'FILL' 1">warning</span>
+              Concerns
+            </h3>
+            <p id="concerns-text" class="text-sm text-on-surface-variant leading-relaxed"></p>
+          </div>
+          <!-- Positives -->
+          <div class="border-l-4 border-l-primary bg-[#fff8f6] p-6">
+            <h3 class="text-base font-semibold text-on-surface mb-3 flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings:'FILL' 1">check_circle</span>
+              Positives
+            </h3>
+            <p id="positives-text" class="text-sm text-on-surface-variant leading-relaxed"></p>
+          </div>
+        </div>
+
+        <!-- Nutrition table -->
+        <div class="bg-white border border-border-subtle rounded-xl p-6">
+          <h3 class="text-base font-semibold text-on-surface mb-4">Nutritional Breakdown (per 100g)</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b-2 border-border-subtle">
+                  <th class="py-3 px-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant">Nutrient</th>
+                  <th class="py-3 px-2 text-xs font-bold uppercase tracking-wider text-on-surface-variant text-right">Per 100g</th>
+                </tr>
+              </thead>
+              <tbody id="nutrition-tbody" class="font-mono text-sm text-on-surface divide-y divide-border-subtle"></tbody>
+            </table>
+          </div>
+          <p id="disclaimer-text" class="mt-5 text-xs text-outline italic text-center"></p>
+        </div>
+
+        <!-- View alternatives button -->
+        <a id="alternatives-link" href="#"
+          class="w-full py-3 px-6 bg-primary text-white font-semibold text-sm rounded-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-2 shadow-sm">
+          <span class="material-symbols-outlined text-base">swap_vert</span>
+          View Healthier Alternatives
+        </a>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-[#fef1ec] w-full py-4 border-t border-border-subtle mt-auto">
+  <div class="max-w-container mx-auto px-12 flex flex-col md:flex-row justify-between items-center gap-4">
+    <p class="text-sm text-on-surface-variant">© 2024 NutriCheck. Data sourced from Open Food Facts.</p>
+    <div class="flex gap-4 text-sm text-on-surface-variant">
+      <a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+      <a class="hover:text-primary transition-colors" href="#">API Documentation</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const API = 'http://localhost:5163';
+const params = new URLSearchParams(location.search);
+const barcode = params.get('barcode') || '';
+
+const NUTRI_COLORS = {
+  a: '#038141', b: '#85BB2F', c: '#FECB02', d: '#EE8100', e: '#E63E11'
+};
+const BAND_COLORS = { Healthy: '#006947', Moderate: '#EE8100', Poor: '#ba1a1a' };
+
+function fmt(val, unit = 'g') {
+  if (val === null || val === undefined) return 'N/A';
+  return parseFloat(val).toFixed(1) + unit;
+}
+
+function renderNutriScore(grade) {
+  const g = (grade || '').toLowerCase();
+  const grades = ['a', 'b', 'c', 'd', 'e'];
+  const badge = document.getElementById('nutri-score-badge');
+  badge.innerHTML = grades.map(l => {
+    const color = NUTRI_COLORS[l];
+    const isActive = l === g;
+    if (isActive) {
+      return `<div style="background:${color};" class="w-8 h-8 -my-1 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white">${l.toUpperCase()}</div>`;
+    }
+    return `<div style="background:#bdcac0;opacity:0.4;" class="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs">${l.toUpperCase()}</div>`;
+  }).join('');
+}
+
+function renderScore(score, band) {
+  const el = document.getElementById('score-ring');
+  const circumference = 251.2;
+  const offset = circumference - (score / 100) * circumference;
+  const color = BAND_COLORS[band] || '#6e7a72';
+  el.setAttribute('stroke-dashoffset', offset);
+  el.setAttribute('stroke', color);
+
+  document.getElementById('score-value').textContent = score;
+
+  const bandEl = document.getElementById('health-band');
+  bandEl.textContent = band.toUpperCase();
+  bandEl.style.color = color;
+
+  const card = document.getElementById('score-card');
+  card.style.borderLeftColor = color;
+}
+
+function renderNutritionTable(nutriments) {
+  const rows = [
+    ['Sugar', nutriments.sugars100g],
+    ['Fat', nutriments.fat100g],
+    ['Saturated Fat', nutriments.saturatedFat100g],
+    ['Protein', nutriments.proteins100g],
+    ['Fiber', nutriments.fiber100g],
+    ['Salt', nutriments.salt100g],
+  ];
+  const tbody = document.getElementById('nutrition-tbody');
+  tbody.innerHTML = rows.map(([name, val]) => `
+    <tr>
+      <td class="py-3 px-2 text-on-surface">${name}</td>
+      <td class="py-3 px-2 text-right text-on-surface">${fmt(val)}</td>
+    </tr>
+  `).join('');
+}
+
+function showError(title, detail) {
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('content').classList.add('hidden');
+  document.getElementById('error-state').classList.remove('hidden');
+  document.getElementById('error-title').textContent = title;
+  document.getElementById('error-detail').textContent = detail || '';
+}
+
+async function loadProduct() {
+  if (!barcode) {
+    showError('No barcode provided', 'Please go back and enter a barcode.');
+    return;
+  }
+
+  document.getElementById('breadcrumb-barcode').textContent = `Product: ${barcode}`;
+
+  // nav search
+  document.getElementById('nav-search').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.value.trim())
+      window.location.href = `product.html?barcode=${encodeURIComponent(e.target.value.trim())}`;
+  });
+
+  try {
+    const res = await fetch(`${API}/products/${encodeURIComponent(barcode)}`);
+    if (res.status === 404) { showError('Product not found', `No product found for barcode ${barcode}.`); return; }
+    if (!res.ok) { showError('Upstream error', 'Could not reach Open Food Facts. Try again later.'); return; }
+
+    const data = await res.json();
+
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('content').classList.remove('hidden');
+
+    document.getElementById('product-brand').textContent = data.brands || '';
+    document.getElementById('product-name').textContent = data.productName || barcode;
+    document.getElementById('ingredients-text').textContent = data.ingredientsText || 'Not available.';
+    document.getElementById('summary-text').textContent = data.nutritionInsights.summary;
+    document.getElementById('concerns-text').textContent = data.nutritionInsights.concerns;
+    document.getElementById('positives-text').textContent = data.nutritionInsights.positives;
+    document.getElementById('disclaimer-text').textContent = data.nutritionInsights.disclaimer;
+    document.getElementById('alternatives-link').href = `alternatives.html?barcode=${encodeURIComponent(barcode)}`;
+
+    renderNutriScore(data.nutriscoreGrade);
+    renderScore(data.nutritionScore, data.healthBand);
+    renderNutritionTable(data.nutriments);
+
+    document.title = `NutriCheck - ${data.productName || barcode}`;
+
+  } catch (err) {
+    showError('Connection error', 'Could not connect to the NutriCheck API. Is the backend running?');
+  }
+}
+
+// Ingredients collapse/expand
+document.getElementById('ingredients-toggle').addEventListener('click', function() {
+  const el = document.getElementById('ingredients-text');
+  const isCollapsed = el.classList.contains('line-clamp-3');
+  if (isCollapsed) {
+    el.classList.remove('line-clamp-3');
+    this.textContent = 'expand_less';
+  } else {
+    el.classList.add('line-clamp-3');
+    this.textContent = 'expand_more';
+  }
+});
+
+loadProduct();
+</script>
+</body>
+</html>

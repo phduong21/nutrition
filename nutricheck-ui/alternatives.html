@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NutriCheck - Healthier Alternatives</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#006947",
+        "on-primary": "#ffffff",
+        "primary-container": "#02855b",
+        "surface": "#fff8f6",
+        "surface-container": "#f8ebe6",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#fef1ec",
+        "surface-container-high": "#f2e6e1",
+        "surface-variant": "#ede0db",
+        "on-surface": "#201a18",
+        "on-surface-variant": "#3e4942",
+        "outline": "#6e7a72",
+        "outline-variant": "#bdcac0",
+        "border-subtle": "#E2E8E5",
+        "background-surface": "#F8FAF9",
+        "nutri-score-a": "#038141",
+        "nutri-score-b": "#85BB2F",
+        "nutri-score-c": "#FECB02",
+        "nutri-score-d": "#EE8100",
+        "nutri-score-e": "#E63E11",
+        "data-mono": "#663333",
+        "error": "#ba1a1a",
+        "secondary": "#b12b27",
+      },
+      fontFamily: {
+        "sans": ["Public Sans", "sans-serif"],
+        "mono": ["Courier Prime", "monospace"],
+      },
+      maxWidth: { "container": "1200px" },
+    }
+  }
+}
+</script>
+<style>
+  body { background-color: #F8FAF9; font-family: "Public Sans", sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col text-on-surface bg-background-surface">
+
+<!-- Nav -->
+<header class="bg-surface fixed top-0 w-full z-50 border-b border-border-subtle">
+  <div class="max-w-container mx-auto px-4 md:px-12 flex justify-between items-center h-16">
+    <div class="flex items-center gap-6">
+      <a href="index.html" class="text-2xl font-bold text-primary tracking-tight">NutriCheck</a>
+      <nav class="hidden md:flex gap-6 ml-4 text-sm">
+        <a href="index.html" class="text-on-surface-variant hover:text-primary transition-colors">Home</a>
+        <a href="#" class="text-primary font-bold border-b-2 border-primary pb-1">Products</a>
+      </nav>
+    </div>
+    <div class="relative hidden md:block w-56">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+      <input id="nav-search"
+        class="w-full pl-10 pr-4 py-2 border border-border-subtle bg-white rounded-full text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none placeholder:text-outline-variant transition-colors"
+        placeholder="Enter barcode..."
+        type="text"/>
+    </div>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="flex-grow pt-24 pb-16 px-4 md:px-12 max-w-container mx-auto w-full">
+
+  <!-- Back link + heading -->
+  <div class="mb-8">
+    <a id="back-link" href="#" class="flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary transition-colors mb-3">
+      <span class="material-symbols-outlined text-base">arrow_back</span>
+      Back to Product Analysis
+    </a>
+    <h1 class="text-3xl font-bold text-on-surface tracking-tight">Healthier Alternatives</h1>
+    <p class="text-base text-on-surface-variant mt-1">Products in the same category with a better Nutri-Score</p>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading" class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
+    <div class="bg-white border border-border-subtle rounded-xl overflow-hidden h-72 bg-[#F0F0F0]"></div>
+    <div class="bg-white border border-border-subtle rounded-xl overflow-hidden h-72 bg-[#F0F0F0]"></div>
+    <div class="bg-white border border-border-subtle rounded-xl overflow-hidden h-72 bg-[#F0F0F0]"></div>
+  </div>
+
+  <!-- Error -->
+  <div id="error-state" class="hidden flex flex-col items-center justify-center py-24 gap-4 text-center">
+    <span class="material-symbols-outlined text-6xl text-outline-variant">error_outline</span>
+    <h2 id="error-title" class="text-xl font-semibold text-on-surface">Something went wrong</h2>
+    <p id="error-detail" class="text-sm text-on-surface-variant max-w-sm"></p>
+    <a id="error-back" href="index.html" class="mt-2 px-6 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-container transition-colors">
+      Back to Search
+    </a>
+  </div>
+
+  <!-- Empty state -->
+  <div id="empty-state" class="hidden flex flex-col items-center justify-center py-24 gap-4 text-center">
+    <span class="material-symbols-outlined text-6xl text-outline-variant">sentiment_satisfied</span>
+    <h2 class="text-xl font-semibold text-on-surface">No alternatives found</h2>
+    <p class="text-sm text-on-surface-variant max-w-sm">This product already has a good Nutri-Score, or no comparable products were found.</p>
+    <a id="empty-back" href="index.html" class="mt-2 px-6 py-2 border border-primary text-primary text-sm font-semibold rounded-lg hover:bg-primary hover:text-white transition-colors">
+      Back to Product
+    </a>
+  </div>
+
+  <!-- Grid -->
+  <div id="grid" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+
+</main>
+
+<!-- Footer -->
+<footer class="bg-[#fef1ec] w-full py-4 border-t border-border-subtle mt-auto">
+  <div class="max-w-container mx-auto px-12 flex flex-col md:flex-row justify-between items-center gap-4">
+    <p class="text-sm text-on-surface-variant">© 2024 NutriCheck. Data sourced from Open Food Facts.</p>
+    <div class="flex gap-4 text-sm text-on-surface-variant">
+      <a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+      <a class="hover:text-primary transition-colors" href="#">API Documentation</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const API = 'http://localhost:5163';
+const params = new URLSearchParams(location.search);
+const barcode = params.get('barcode') || '';
+
+const NUTRI_COLORS = {
+  a: '#038141', b: '#85BB2F', c: '#FECB02', d: '#EE8100', e: '#E63E11'
+};
+
+function nutriColor(grade) {
+  return NUTRI_COLORS[(grade || '').toLowerCase()] || '#6e7a72';
+}
+
+function showError(title, detail) {
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('error-state').classList.remove('hidden');
+  document.getElementById('error-title').textContent = title;
+  document.getElementById('error-detail').textContent = detail || '';
+}
+
+function renderCard(alt) {
+  const grade = (alt.nutriScoreGrade || '').toLowerCase();
+  const color = nutriColor(grade);
+  return `
+    <article class="bg-white border border-border-subtle rounded-xl overflow-hidden flex flex-col hover:border-outline-variant transition-colors"
+             style="border-left: 4px solid ${color};">
+      <!-- Color band top -->
+      <div class="h-2" style="background:${color};"></div>
+      <div class="p-6 flex flex-col flex-grow gap-4">
+        <!-- Header -->
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <h2 class="text-base font-semibold text-on-surface leading-tight">${escHtml(alt.productName || alt.barcode)}</h2>
+            <p class="font-mono text-xs text-on-surface-variant mt-0.5">${escHtml(alt.barcode)}</p>
+          </div>
+          <div class="flex-shrink-0 px-3 py-1 rounded-full border border-border-subtle bg-[#F8FAF9] text-xs font-bold uppercase tracking-wide"
+               style="color:${color};">
+            Nutri-Score ${(alt.nutriScoreGrade || '?').toUpperCase()}
+          </div>
+        </div>
+
+        <!-- Rationale -->
+        <div class="flex-grow">
+          <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Why it's better</div>
+          <div class="bg-[#F8FAF9] border border-border-subtle rounded-lg p-4">
+            <p class="text-sm text-on-surface-variant leading-relaxed">${escHtml(alt.rationale || 'Better nutritional profile.')}</p>
+          </div>
+        </div>
+
+        <!-- View button -->
+        <a href="product.html?barcode=${encodeURIComponent(alt.barcode)}"
+           class="w-full py-2 px-4 border border-primary text-primary hover:bg-primary hover:text-white transition-colors rounded-lg text-sm font-semibold flex items-center justify-center gap-2">
+          View Details
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+      </div>
+    </article>
+  `;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function loadAlternatives() {
+  const backLink = document.getElementById('back-link');
+  const emptyBack = document.getElementById('empty-back');
+  const errorBack = document.getElementById('error-back');
+
+  if (barcode) {
+    backLink.href = `product.html?barcode=${encodeURIComponent(barcode)}`;
+    emptyBack.href = `product.html?barcode=${encodeURIComponent(barcode)}`;
+    errorBack.href = `product.html?barcode=${encodeURIComponent(barcode)}`;
+  }
+
+  document.getElementById('nav-search').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.value.trim())
+      window.location.href = `product.html?barcode=${encodeURIComponent(e.target.value.trim())}`;
+  });
+
+  if (!barcode) {
+    showError('No barcode provided', 'Please go back and enter a barcode.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/products/${encodeURIComponent(barcode)}/alternatives`);
+    if (res.status === 404) { showError('Product not found', `No product found for barcode ${barcode}.`); return; }
+    if (!res.ok) { showError('Upstream error', 'Could not reach the API. Try again later.'); return; }
+
+    const data = await res.json();
+
+    document.getElementById('loading').classList.add('hidden');
+
+    if (!data.alternatives || data.alternatives.length === 0) {
+      document.getElementById('empty-state').classList.remove('hidden');
+      return;
+    }
+
+    const grid = document.getElementById('grid');
+    grid.innerHTML = data.alternatives.map(renderCard).join('');
+    grid.classList.remove('hidden');
+
+    document.title = `NutriCheck - Alternatives for ${barcode}`;
+
+  } catch (err) {
+    showError('Connection error', 'Could not connect to the NutriCheck API. Is the backend running?');
+  }
+}
+
+loadAlternatives();
+</script>
+</body>
+</html>

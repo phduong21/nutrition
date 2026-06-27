@@ -13,18 +13,7 @@ public sealed class ProductService(FoodFetcher foodFetcher, NutritionScoringEngi
         if (!productResult.IsSuccess)
             return Result<ProductAnalysis>.Failure(productResult.Error!);
 
-        var product = productResult.Value!;
-        var categoryTag = product.CategoriesTags.FirstOrDefault();
-
-        CategoryAverages? averages = null;
-        if (!string.IsNullOrWhiteSpace(categoryTag))
-        {
-            var averagesResult = await foodFetcher.GetCategoryAveragesAsync(categoryTag, cancellationToken);
-            if (averagesResult.IsSuccess)
-                averages = averagesResult.Value;
-        }
-
-        return Result<ProductAnalysis>.Success(BuildAnalysis(product, averages));
+        return Result<ProductAnalysis>.Success(BuildAnalysis(productResult.Value!));
     }
 
     public async Task<Result<AlternativesResponse>> GetAlternativesAsync(
@@ -37,19 +26,20 @@ public sealed class ProductService(FoodFetcher foodFetcher, NutritionScoringEngi
 
         var source = productResult.Value!;
         var searchResult = await foodFetcher.SearchAlternativesAsync(source, cancellationToken);
-        if (!searchResult.IsSuccess)
-            return Result<AlternativesResponse>.Failure(searchResult.Error!);
 
-        var ranked = scoringEngine.RankAlternatives(source, searchResult.Value!);
+        // Alternatives are best-effort: degrade gracefully when OFF search is unavailable.
+        IReadOnlyList<AlternativeRecommendation> ranked = searchResult.IsSuccess
+            ? scoringEngine.RankAlternatives(source, searchResult.Value!)
+            : [];
 
         return Result<AlternativesResponse>.Success(new AlternativesResponse(source.Barcode, ranked));
     }
 
-    private ProductAnalysis BuildAnalysis(Product product, CategoryAverages? averages)
+    private ProductAnalysis BuildAnalysis(Product product)
     {
         var score = scoringEngine.CalculateScore(product.Nutriments);
         var band = scoringEngine.ClassifyHealthBand(score);
-        var insights = scoringEngine.Score(product, averages);
+        var insights = scoringEngine.Score(product, categoryAverages: null);
 
         return new ProductAnalysis(product, score, band, insights);
     }

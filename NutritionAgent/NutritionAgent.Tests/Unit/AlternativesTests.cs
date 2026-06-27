@@ -50,20 +50,20 @@ public class AlternativesTests
     [Fact]
     public async Task ProductService_GetAlternativesAsync_ReturnsBetterAlternatives()
     {
-        var client = TestFixtures.CreateOffClient(handler =>
-        {
-            handler.Register(
-                "/api/v2/product/3017620422003",
-                System.Net.HttpStatusCode.OK,
-                TestFixtures.Load("off-3017620422003.json"));
-            handler.Register(
-                "/api/v2/search",
-                System.Net.HttpStatusCode.OK,
-                TestFixtures.Load("off-search-alternatives.json"));
-        });
-
         var service = new ProductService(
-            new Infrastructure.FoodFetcher(client),
+            TestFixtures.CreateFoodFetcher(
+                configureProduct: handler =>
+                {
+                    handler.Register(
+                        "/api/v2/product/3017620422003",
+                        System.Net.HttpStatusCode.OK,
+                        TestFixtures.Load("off-3017620422003.json"));
+                },
+                configureSearch: handler =>
+                    handler.Register(
+                        "/search",
+                        System.Net.HttpStatusCode.OK,
+                        TestFixtures.Load("off-search-alternatives.json"))),
             new NutritionScoringEngine());
 
         var result = await service.GetAlternativesAsync("3017620422003");

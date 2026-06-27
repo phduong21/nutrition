@@ -1,14 +1,12 @@
 ---
-description: 
 alwaysApply: true
 ---
-
 # TDD Development Workflow — Nutrition Intelligence Agent
 
 ## Context
 - Project: Nutrition Intelligence Agent
 - Stack: C# .NET 10, Minimal API, rule-based Nutrition Scoring Engine
-- External API: Open Food Facts v2 (no key needed)
+- External API: Open Food Facts v2 product read + Search-a-licious for alternatives (no key needed)
 - Scoring: deterministic C# rules — sugar, fat, saturated fat, protein, fiber, salt per 100g
 - No LLM, no Semantic Kernel, no API keys required
 
@@ -30,6 +28,7 @@ BMAD đã chạy xong. Artifacts ở `_bmad-output/planning-artifacts/`.
 Trước khi viết bất kỳ C# model nào, dùng fetch MCP:
 GET https://world.openfoodfacts.org/api/v2/product/3017620422003.json
 GET https://world.openfoodfacts.org/api/v2/product/5000159407236.json
+GET https://search.openfoodfacts.org/search?q=confectionary+based+spreads&page_size=3&fields=code,product_name,nutriscore_grade
 
 Map fields thật vào models. Không đoán mò.
 
@@ -62,8 +61,8 @@ Test cases bắt buộc:
 ## Phase 4: Implement (GREEN)
 Thứ tự bắt buộc:
 1. Domain records + `ScoringThresholds.cs` (record, immutable)
-2. `NutritionScoringEngine.cs` (score, health band, insights, category comparison, alternative rationale)
-3. `FoodFetcher.cs` (IHttpClientFactory — product, search, category peers)
+2. `NutritionScoringEngine.cs` (score, health band, insights, alternative rationale)
+3. `FoodFetcher.cs` (IHttpClientFactory — `"OpenFoodFacts"` product client + `"OpenFoodFactsSearch"` for alternatives)
 4. `ProductService.cs` (orchestrates fetch + scoring)
 5. `ProductEndpoints.cs` (Minimal API)
 6. `Program.cs` (DI wiring)
@@ -73,7 +72,7 @@ Conventions:
 - IHttpClientFactory cho HTTP
 - Async/await toàn bộ
 - Result pattern cho errors
-- Tests trong `NutritionAgent.Tests/` (riêng project)
+- Tests trong `NutritionAgent/NutritionAgent.Tests/` (riêng project)
 
 Scoring Engine pattern bắt buộc:
 ```csharp

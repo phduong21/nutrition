@@ -9,7 +9,7 @@ Update checkboxes here as stories complete.
 
 - [x] **1.1** Verify OFF API shape and scaffold projects
 - [x] **1.2** Nutrition Scoring Engine (TDD)
-- [x] **1.3** Rule-based insights and category comparison (TDD)
+- [x] **1.3** Rule-based insights (TDD) — category comparison removed from product endpoint (OFF search latency)
 - [x] **1.4** FoodFetcher and ProductService
 - [x] **1.5** GET /products/{barcode} endpoint
 

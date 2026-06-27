@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NutritionAgent\NutritionAgent.csproj" />
+    <ProjectReference Include="..\NutritionAgent.csproj" />
   </ItemGroup>
 
   <ItemGroup>

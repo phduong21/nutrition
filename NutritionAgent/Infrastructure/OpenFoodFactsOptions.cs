@@ -6,5 +6,7 @@ public sealed class OpenFoodFactsOptions
 
     public string BaseUrl { get; init; } = "https://world.openfoodfacts.org";
 
+    public string SearchBaseUrl { get; init; } = "https://search.openfoodfacts.org";
+
     public string? UserAgent { get; init; }
 }

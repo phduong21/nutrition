@@ -35,14 +35,32 @@ builder.Services.AddHttpClient("OpenFoodFacts", (sp, client) =>
     AutomaticDecompression = DecompressionMethods.All
 });
 
+builder.Services.AddHttpClient("OpenFoodFactsSearch", (sp, client) =>
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<OpenFoodFactsOptions>>().Value;
+    client.BaseAddress = new Uri(options.SearchBaseUrl.TrimEnd('/') + "/");
+
+    if (!string.IsNullOrWhiteSpace(options.UserAgent))
+        client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    AutomaticDecompression = DecompressionMethods.All
+});
+
 builder.Services.AddSingleton<FoodFetcher>(sp =>
 {
     var factory = sp.GetRequiredService<IHttpClientFactory>();
-    return new FoodFetcher(factory.CreateClient("OpenFoodFacts"));
+    return new FoodFetcher(
+        factory.CreateClient("OpenFoodFacts"),
+        factory.CreateClient("OpenFoodFactsSearch"));
 });
 
 builder.Services.AddSingleton<NutritionScoringEngine>();
 builder.Services.AddSingleton<ProductService>();
+
+builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
+    p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
 
@@ -55,6 +73,8 @@ if (app.Environment.IsDevelopment())
         options.DocumentTitle = "Nutrition Intelligence Agent";
     });
 }
+
+app.UseCors();
 
 app.MapProductEndpoints();
 

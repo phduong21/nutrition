@@ -45,16 +45,18 @@ Agents **must** update the per-story log when claiming a phase is done.
 ## MVP test summary (2026-06-27)
 
 ```
-dotnet test → 24 passed, 0 failed
+dotnet test → 27 passed, 0 failed
 ```
 
-Live curl (product + 404 verified; alternatives returned 502 when OFF search timed out):
+Live curl (2026-06-27, post Search-a-licious migration):
 
 ```text
 GET /products/3017620422003 → 200 + nutritionInsights + nutritionScore + healthBand
 GET /products/invalid → 404 problem details
-GET /products/3017620422003/alternatives → 502 (OFF search 504 upstream)
+GET /products/3017620422003/alternatives → 200 + non-empty alternatives (Search-a-licious ~1s)
 ```
+
+Previous note: alternatives returned 502 when OFF v2 search timed out (~60s); migrated to Search-a-licious.
 
 Playwright MCP: navigated to product 200 JSON and invalid 404 JSON successfully.
 

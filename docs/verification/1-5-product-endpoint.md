@@ -28,3 +28,9 @@ Playwright: browser_navigate to both URLs — JSON rendered
 ## Phase 5 — Code review
 
 Pending.
+
+## Change log
+
+| Date | Change |
+| --- | --- |
+| 2026-06-27 | Removed OFF search from `GET /products/{barcode}` — category comparison caused ~60s latency (OFF search 504). Product route now single OFF product fetch only. |

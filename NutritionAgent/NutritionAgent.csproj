@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="NutritionAgent.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="NutritionAgent.Tests/**" />
+    <Content Remove="NutritionAgent.Tests/**" />
+    <EmbeddedResource Remove="NutritionAgent.Tests/**" />
+    <None Remove="NutritionAgent.Tests/**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
   </ItemGroup>

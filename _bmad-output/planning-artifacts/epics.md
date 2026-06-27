@@ -27,7 +27,7 @@ FR2: Nutrition Scoring Engine computes `nutritionScore` (0–100) from per-100g 
 
 FR3: Product response includes `nutritionInsights` as `{ summary, concerns, positives, disclaimer }` — all non-empty on success; rule-based flags for high sugar, high saturated fat, good protein/fiber; disclaimer is informational-only (not medical advice).
 
-FR4: Engine compares product nutriments to same-category averages (from OFF) and surfaces comparison in `nutritionInsights.summary`; graceful omit when category missing; `GET /products/{barcode}` must NOT include `alternatives` array.
+FR4: ~~Engine compares product nutriments to same-category averages (from OFF)~~ **Removed from `GET /products/{barcode}`** — OFF v2 search is too slow/unreliable (~60s timeouts); product insights use nutriments-only summary. `GET /products/{barcode}` must NOT include `alternatives` array.
 
 FR5: Integrator can call `GET /products/{barcode}/alternatives` — ranked alternatives with `barcode`, `productName`, `nutriscoreGrade`, rule-generated `rationale`; each alternative strictly better Nutri-Score than source; invalid barcode → 404.
 
@@ -47,7 +47,7 @@ NFR5: External HTTP via `IHttpClientFactory` named client `"OpenFoodFacts"` (AD-
 
 NFR6: Immutable public models as C# `record` types (AD-11).
 
-NFR7: Separate test project `NutritionAgent.Tests/` at solution root (AD-10).
+NFR7: Separate test project `NutritionAgent/NutritionAgent.Tests/` nested under `NutritionAgent` (AD-10).
 
 NFR8: No authentication on API for MVP demo (PRD §9).
 
@@ -62,7 +62,7 @@ NFR12: Reviewer setup under 15 minutes on clean machine, no API keys (SM-2).
 ### Additional Requirements
 
 - **Stack:** .NET 10, ASP.NET Core Minimal API, Microsoft.AspNetCore.OpenApi 10.0.8, xunit + WebApplicationFactory.
-- **Open Food Facts v2 only:** product `GET /api/v2/product/{barcode}.json`; search `GET /api/v2/search` for alternatives and category peers (AD-3).
+- **Open Food Facts v2 + Search-a-licious:** product `GET /api/v2/product/{barcode}.json`; alternatives via Search-a-licious `GET /search` (AD-3).
 - **Layered folders:** `Endpoints/`, `Services/`, `Domain/`, `Infrastructure/` per structural seed.
 - **Core components:** `NutritionScoringEngine`, `ScoringThresholds`, `FoodFetcher`, `ProductService`, `ProductEndpoints`, `Result.cs`.
 - **Health band thresholds (seed):** score ≥ 70 → Healthy; 40–69 → Moderate; < 40 → Poor (Architecture §4.3).
@@ -84,15 +84,15 @@ N/A — backend-only API; no UI or UX design contract.
 FR1: Epic 1 — Product lookup by barcode with OFF integration
 FR2: Epic 1 — Calculated nutrition score and health band
 FR3: Epic 1 — Rule-based nutritionInsights on product response
-FR4: Epic 1 — Category average comparison in insights
+FR4: Epic 1 — ~~Category average comparison~~ Removed from product endpoint (OFF search latency)
 FR5: Epic 2 — Healthier alternatives endpoint
 FR6: Epic 3 — OpenAPI, README, integration verification
 
 ## Epic List
 
 ### Epic 1: Product Nutrition Analysis
-Integrator can look up any barcode and receive nutrition score, health band, and rule-based insights with category comparison — no API keys required.
-**FRs covered:** FR1, FR2, FR3, FR4
+Integrator can look up any barcode and receive nutrition score, health band, and rule-based insights — no API keys required.
+**FRs covered:** FR1, FR2, FR3
 
 ### Epic 2: Healthier Alternatives
 Integrator can discover better Nutri-Score products in the same category with rule-generated rationale.
@@ -106,7 +106,7 @@ Reviewer can clone, run, test, and integrate the API in under 15 minutes with do
 
 ## Epic 1: Product Nutrition Analysis
 
-Integrator can look up any barcode and receive nutrition score, health band, and rule-based insights with category comparison.
+Integrator can look up any barcode and receive nutrition score, health band, and rule-based insights.
 
 ### Story 1.1: Verify OFF API Shape and Scaffold Projects
 
@@ -120,7 +120,7 @@ So that implementation is grounded in actual API data and TDD can begin.
 **When** OFF v2 product JSON is fetched and analyzed
 **Then** models account for `sugars_100g`, `fat_100g`, `saturated-fat_100g`, `proteins_100g`, `fiber_100g`, `salt_100g`, `nutriscore_grade`, `categories_tags`, `product_name`, `brands`, `ingredients_text`
 **And** nullable vs required fields are documented in code comments or a short mapping note
-**And** `NutritionAgent.Tests/` project exists referencing `NutritionAgent` (NFR7)
+**And** `NutritionAgent/NutritionAgent.Tests/` project exists referencing `NutritionAgent` (NFR7)
 **And** layered folders `Domain/`, `Infrastructure/`, `Services/`, `Endpoints/` exist per AD-1
 
 ### Story 1.2: Nutrition Scoring Engine (TDD)
@@ -139,11 +139,11 @@ So that product quality is assessed consistently without external AI.
 **And** engine is pure domain — no HTTP or I/O (AD-4)
 **And** `ScoringThresholds.cs` holds constants; models are `record` types (NFR6)
 
-### Story 1.3: Rule-Based Insights and Category Comparison (TDD)
+### Story 1.3: Rule-Based Insights (TDD)
 
 As an **integrator**,
-I want rule-generated nutritionInsights including nutrient flags and category comparison,
-So that I understand product strengths and weaknesses in context.
+I want rule-generated nutritionInsights including nutrient flags,
+So that I understand product strengths and weaknesses from per-100g nutriments.
 
 **Acceptance Criteria:**
 
@@ -153,13 +153,12 @@ So that I understand product strengths and weaknesses in context.
 **And** `ScoringEngine_GoodProteinOrFiber_FlagsPositiveInInsights` passes
 **And** `NutritionInsights_AlwaysContainsDisclaimerField` passes
 **And** `nutritionInsights` shape is `{ summary, concerns, positives, disclaimer }` — all non-empty strings (FR3, AD-7)
-**And** when category averages provided, summary references above/below category average (FR4)
-**And** when category missing, insights still returned without comparison text (FR4)
+**And** `GET /products/{barcode}` does not call OFF search for category averages (performance; FR4 removed)
 
 ### Story 1.4: FoodFetcher and ProductService
 
 As an **integrator**,
-I want live product and category data fetched from Open Food Facts,
+I want live product data fetched from Open Food Facts,
 So that scores and insights reflect real catalog data.
 
 **Acceptance Criteria:**
@@ -168,7 +167,7 @@ So that scores and insights reflect real catalog data.
 **When** `GetProductAsync(barcode)` is called with valid/invalid barcodes
 **Then** valid returns mapped `Product`; unknown returns failure via `Result` pattern (FR1, NFR4)
 **And** OFF 5xx/timeout maps to failure result (not empty product)
-**And** `GetCategoryAveragesAsync(category)` returns peer averages for FR4
+**And** `ProductService.GetProductAnalysisAsync` orchestrates product fetch → score → insights only (no OFF search on product route)
 **And** `ProductService` orchestrates fetch → score → insights without violating layer rules (AD-1, NFR3)
 **And** no database or cache introduced (NFR1)
 
@@ -203,7 +202,7 @@ So that I can recommend healthier products programmatically.
 
 **Acceptance Criteria:**
 
-**Given** `FoodFetcher.SearchAlternativesAsync` uses OFF v2 search same category, better grade (AD-3)
+**Given** `FoodFetcher.SearchAlternativesAsync` uses Search-a-licious (`search.openfoodfacts.org/search`) with category-derived query and better grades (AD-3)
 **When** source product has poor Nutri-Score
 **Then** `GetAlternatives_PoorProduct_ReturnsBetterNutriScore` passes
 **And** each alternative has strictly better `nutriscoreGrade` than source (FR5)

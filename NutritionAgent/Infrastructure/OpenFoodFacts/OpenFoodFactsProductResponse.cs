@@ -26,6 +26,7 @@ public sealed class OpenFoodFactsProduct
     public string? ProductName { get; init; }
 
     [JsonPropertyName("brands")]
+    [JsonConverter(typeof(OpenFoodFactsBrandsConverter))]
     public string? Brands { get; init; }
 
     [JsonPropertyName("nutriscore_grade")]

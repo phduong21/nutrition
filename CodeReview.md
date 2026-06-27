@@ -13,11 +13,8 @@
   Input có ký tự đặc biệt (vd `/`, `?`, `%`) có thể làm thay đổi semantics của route và gây lỗi khó truy vết. Nên encode hoặc validate chặt hơn format barcode trước khi gọi upstream.
 
 ### Low
-- **Insight so sánh category bị sai khi bằng nhau**  
-  Trong `NutritionAgent/Domain/NutritionScoringEngine.cs`, logic:
-  - `productValue > categoryAverage` -> `above`
-  - còn lại -> `below`  
-  Trường hợp `productValue == categoryAverage` hiện bị gán thành `below`, khiến nội dung insight sai ngữ nghĩa.
+- **Insight so sánh category bị sai khi bằng nhau** *(không còn dùng trên product endpoint)*
+  Trong `NutritionAgent/Domain/NutritionScoringEngine.cs`, logic so sánh category vẫn tồn tại cho unit test nhưng `GET /products/{barcode}` không gọi OFF search nữa.
 
 ## Missing Tests / Coverage Gaps
 

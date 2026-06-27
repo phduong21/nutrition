@@ -6,7 +6,7 @@ using NutritionAgent.Services;
 
 namespace NutritionAgent.Infrastructure;
 
-public sealed class FoodFetcher(HttpClient httpClient)
+public sealed class FoodFetcher(HttpClient productClient, HttpClient searchClient)
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -18,7 +18,7 @@ public sealed class FoodFetcher(HttpClient httpClient)
         if (string.IsNullOrWhiteSpace(barcode))
             return Result<Product>.Failure(new ServiceError(ErrorKind.InvalidInput, "Barcode is required."));
 
-        var response = await httpClient.GetAsync($"api/v2/product/{barcode}.json", cancellationToken);
+        var response = await productClient.GetAsync($"api/v2/product/{barcode}.json", cancellationToken);
 
         if (response.StatusCode is HttpStatusCode.NotFound)
             return Result<Product>.Failure(new ServiceError(ErrorKind.NotFound, $"Product '{barcode}' was not found."));
@@ -36,62 +36,36 @@ public sealed class FoodFetcher(HttpClient httpClient)
         return Result<Product>.Success(OpenFoodFactsProductMapper.Map(payload));
     }
 
-    public async Task<Result<CategoryAverages>> GetCategoryAveragesAsync(
-        string categoryTag,
-        CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(categoryTag))
-            return Result<CategoryAverages>.Failure(new ServiceError(ErrorKind.InvalidInput, "Category tag is required."));
-
-        var url =
-            $"api/v2/search?categories_tags={Uri.EscapeDataString(categoryTag)}" +
-            "&page_size=20&fields=nutriments";
-
-        var response = await httpClient.GetAsync(url, cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
-            return Result<CategoryAverages>.Failure(new ServiceError(
-                ErrorKind.UpstreamFailure,
-                $"Open Food Facts search returned {(int)response.StatusCode}."));
-
-        var payload = await DeserializeAsync<OpenFoodFactsSearchResponse>(response, cancellationToken);
-        var products = payload?.Products ?? [];
-
-        if (products.Count == 0)
-            return Result<CategoryAverages>.Failure(new ServiceError(
-                ErrorKind.NotFound,
-                $"No products found for category '{categoryTag}'."));
-
-        return Result<CategoryAverages>.Success(CalculateAverages(products));
-    }
-
     public async Task<Result<IReadOnlyList<Product>>> SearchAlternativesAsync(
         Product source,
         CancellationToken cancellationToken = default)
     {
-        var category = source.CategoriesTags.FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(category))
+        var query = BuildSearchQuery(source.CategoriesTags);
+        if (string.IsNullOrWhiteSpace(query))
             return Result<IReadOnlyList<Product>>.Success(Array.Empty<Product>());
 
         var betterGrades = GetBetterGrades(source.NutriScoreGrade);
         if (betterGrades.Count == 0)
             return Result<IReadOnlyList<Product>>.Success(Array.Empty<Product>());
 
-        var gradesQuery = string.Join(",", betterGrades);
         var url =
-            $"api/v2/search?categories_tags={Uri.EscapeDataString(category)}" +
-            $"&nutriscore_grade={gradesQuery}" +
-            $"&page_size=10&fields=code,product_name,brands,nutriscore_grade,categories_tags,ingredients_text,nutriments";
+            $"search?q={Uri.EscapeDataString(query)}" +
+            "&page_size=20&fields=code,product_name,nutriscore_grade,nutriments";
 
-        var response = await httpClient.GetAsync(url, cancellationToken);
+        List<OpenFoodFactsProduct> products = [];
+        try
+        {
+            var response = await GetSearchWithRetryAsync(url, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                return Result<IReadOnlyList<Product>>.Success(Array.Empty<Product>());
 
-        if (!response.IsSuccessStatusCode)
-            return Result<IReadOnlyList<Product>>.Failure(new ServiceError(
-                ErrorKind.UpstreamFailure,
-                $"Open Food Facts search returned {(int)response.StatusCode}."));
-
-        var payload = await DeserializeAsync<OpenFoodFactsSearchResponse>(response, cancellationToken);
-        var products = payload?.Products ?? [];
+            var payload = await DeserializeAsync<OpenFoodFactsSearchALiciousResponse>(response, cancellationToken);
+            products = payload?.Hits ?? [];
+        }
+        catch (Exception)
+        {
+            return Result<IReadOnlyList<Product>>.Success(Array.Empty<Product>());
+        }
 
         var alternatives = products
             .Where(p => p.Code is not null && p.Code != source.Barcode)
@@ -107,26 +81,41 @@ public sealed class FoodFetcher(HttpClient httpClient)
         return Result<IReadOnlyList<Product>>.Success(alternatives);
     }
 
-    private static CategoryAverages CalculateAverages(IEnumerable<OpenFoodFactsProduct> products)
+    internal static string? BuildSearchQuery(IReadOnlyList<string> categoriesTags)
     {
-        var nutriments = products
-            .Select(p => p.Nutriments)
-            .Where(n => n is not null)
-            .ToList();
+        if (categoriesTags.Count == 0)
+            return null;
 
-        return new CategoryAverages(
-            Average(nutriments.Select(n => n!.Sugars100g)),
-            Average(nutriments.Select(n => n!.Fat100g)),
-            Average(nutriments.Select(n => n!.SaturatedFat100g)),
-            Average(nutriments.Select(n => n!.Proteins100g)),
-            Average(nutriments.Select(n => n!.Fiber100g)),
-            Average(nutriments.Select(n => n!.Salt100g)));
+        for (var i = categoriesTags.Count - 1; i >= 0; i--)
+        {
+            var tag = categoriesTags[i];
+            if (!tag.StartsWith("en:", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var suffix = tag[3..];
+            if (IsAsciiSlug(suffix))
+                return suffix.Replace('-', ' ');
+        }
+
+        var last = categoriesTags[^1];
+        return last.StartsWith("en:", StringComparison.OrdinalIgnoreCase)
+            ? last[3..].Replace('-', ' ')
+            : last;
     }
 
-    private static decimal? Average(IEnumerable<decimal?> values)
+    private static bool IsAsciiSlug(string value) =>
+        value.Length > 0 && value.All(c => c is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9') or '-');
+
+    private async Task<HttpResponseMessage> GetSearchWithRetryAsync(string url, CancellationToken cancellationToken)
     {
-        var numbers = values.Where(v => v.HasValue).Select(v => v!.Value).ToList();
-        return numbers.Count == 0 ? null : numbers.Average();
+        var response = await searchClient.GetAsync(url, cancellationToken);
+        if ((int)response.StatusCode == 503)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+            response = await searchClient.GetAsync(url, cancellationToken);
+        }
+
+        return response;
     }
 
     private static async Task<T?> DeserializeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)

@@ -73,7 +73,7 @@ flowchart TB
 
 - **Binds:** FR-1, FR-4, FR-5, `FoodFetcher`
 - **Prevents:** Mixed v2/v3 clients; silent schema drift
-- **Rule:** Product read: `GET /api/v2/product/{barcode}.json`. Alternatives + category averages: `GET /api/v2/search`. Base URL: `https://world.openfoodfacts.org`.
+- **Rule:** Product read: `GET /api/v2/product/{barcode}.json` on `https://world.openfoodfacts.org`. Alternatives: Search-a-licious `GET /search?q=…&nutrition_grades=…` on `https://search.openfoodfacts.org`. Product endpoint does **not** call search.
 
 ### AD-4 — Rule-based Nutrition Scoring Engine only [ADOPTED]
 
@@ -91,7 +91,7 @@ flowchart TB
 
 - **Binds:** FR-3, FR-4, FR-5, API contracts
 - **Prevents:** `alternatives` array on `GET /products/{barcode}`
-- **Rule:** Product response includes `nutritionInsights` and category comparison only. Alternatives payload only on `GET /products/{barcode}/alternatives`.
+- **Rule:** Product response includes `nutritionInsights` only. Alternatives payload only on `GET /products/{barcode}/alternatives`.
 
 ### AD-7 — nutritionInsights shape [ADOPTED]
 
@@ -109,13 +109,13 @@ flowchart TB
 
 - **Binds:** `FoodFetcher`, DI registration
 - **Prevents:** `new HttpClient()` per request
-- **Rule:** Named typed client `"OpenFoodFacts"` registered via `IHttpClientFactory`.
+- **Rule:** Named typed clients `"OpenFoodFacts"` (product) and `"OpenFoodFactsSearch"` (alternatives) registered via `IHttpClientFactory`.
 
 ### AD-10 — Separate test project [ADOPTED]
 
 - **Binds:** FR-6, TDD workflow
 - **Prevents:** Tests co-located in main project
-- **Rule:** `NutritionAgent.Tests/` at solution root; references `NutritionAgent` only.
+- **Rule:** `NutritionAgent/NutritionAgent.Tests/` nested under `NutritionAgent`; references `NutritionAgent` only.
 
 ### AD-11 — Immutable DTOs as records [ADOPTED]
 
@@ -163,12 +163,12 @@ Nutrition/
       ProductEndpoints.cs
     Program.cs
     appsettings.json
-  NutritionAgent.Tests/
-    Unit/
-      NutritionScoringEngineTests.cs
-      ProductServiceTests.cs
-    Integration/
-      ProductEndpointsTests.cs
+    NutritionAgent.Tests/
+      Unit/
+        NutritionScoringEngineTests.cs
+        ProductServiceTests.cs
+      Integration/
+        ProductEndpointsTests.cs
   docs/
     openapi.json          # Phase 7 output
 ```
@@ -192,7 +192,7 @@ flowchart LR
 | FR-3 Rule-based insights | `NutritionScoringEngine` | AD-4, AD-5, AD-7 |
 | FR-4 Category comparison | `NutritionScoringEngine`, `FoodFetcher` | AD-3, AD-5, AD-6 |
 | FR-5 Alternatives endpoint | `FoodFetcher`, `NutritionScoringEngine`, `ProductEndpoints` | AD-3, AD-6 |
-| FR-6 Docs & tests | `Program.cs`, `NutritionAgent.Tests/` | AD-10 |
+| FR-6 Docs & tests | `Program.cs`, `NutritionAgent/NutritionAgent.Tests/` | AD-10 |
 
 ## Deferred
 
