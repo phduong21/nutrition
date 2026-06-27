@@ -1,0 +1,342 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "NutritionAgent | v1",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5280/"
+    }
+  ],
+  "paths": {
+    "/products/{barcode}": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "GetProduct",
+        "parameters": [
+          {
+            "name": "barcode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{barcode}/alternatives": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "operationId": "GetAlternatives",
+        "parameters": [
+          {
+            "name": "barcode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlternativesApiResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AlternativeRecommendation": {
+        "required": [
+          "barcode",
+          "productName",
+          "nutriScoreGrade",
+          "rationale"
+        ],
+        "type": "object",
+        "properties": {
+          "barcode": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "nutriScoreGrade": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          }
+        }
+      },
+      "AlternativesApiResponse": {
+        "required": [
+          "sourceBarcode",
+          "alternatives"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceBarcode": {
+            "type": "string"
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AlternativeRecommendation"
+            }
+          }
+        }
+      },
+      "Nutriments": {
+        "required": [
+          "sugars100g",
+          "fat100g",
+          "saturatedFat100g",
+          "proteins100g",
+          "fiber100g",
+          "salt100g"
+        ],
+        "type": "object",
+        "properties": {
+          "sugars100g": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "fat100g": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "saturatedFat100g": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "proteins100g": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "fiber100g": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "salt100g": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "NutritionInsights": {
+        "required": [
+          "summary",
+          "concerns",
+          "positives",
+          "disclaimer"
+        ],
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "string"
+          },
+          "concerns": {
+            "type": "string"
+          },
+          "positives": {
+            "type": "string"
+          },
+          "disclaimer": {
+            "type": "string"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProductResponse": {
+        "required": [
+          "productName",
+          "brands",
+          "nutriments",
+          "nutriscoreGrade",
+          "ingredientsText",
+          "nutritionScore",
+          "healthBand",
+          "nutritionInsights"
+        ],
+        "type": "object",
+        "properties": {
+          "productName": {
+            "type": "string"
+          },
+          "brands": {
+            "type": "string"
+          },
+          "nutriments": {
+            "$ref": "#/components/schemas/Nutriments"
+          },
+          "nutriscoreGrade": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ingredientsText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nutritionScore": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "healthBand": {
+            "type": "string"
+          },
+          "nutritionInsights": {
+            "$ref": "#/components/schemas/NutritionInsights"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Products"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "count": 2,
+  "page": 1,
+  "page_count": 1,
+  "page_size": 10,
+  "products": [
+    {
+      "code": "3333333333333",
+      "product_name": "Better Spread",
+      "brands": "Brand C",
+      "nutriscore_grade": "b",
+      "categories_tags": ["en:spreads"],
+      "nutriments": {
+        "sugars_100g": 30,
+        "fat_100g": 15,
+        "saturated-fat_100g": 4,
+        "proteins_100g": 5,
+        "fiber_100g": 3,
+        "salt_100g": 0.3
+      }
+    },
+    {
+      "code": "4444444444444",
+      "product_name": "Best Spread",
+      "brands": "Brand D",
+      "nutriscore_grade": "a",
+      "categories_tags": ["en:spreads"],
+      "nutriments": {
+        "sugars_100g": 10,
+        "fat_100g": 8,
+        "saturated-fat_100g": 2,
+        "proteins_100g": 7,
+        "fiber_100g": 5,
+        "salt_100g": 0.2
+      }
+    }
+  ]
+}

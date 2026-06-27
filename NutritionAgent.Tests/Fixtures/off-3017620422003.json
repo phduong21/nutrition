@@ -1,0 +1,29 @@
+{
+  "code": "3017620422003",
+  "status": 1,
+  "product": {
+    "code": "3017620422003",
+    "product_name": "Nutella",
+    "brands": "Ferrero, Nutella, Yum yum",
+    "nutriscore_grade": "e",
+    "categories_tags": [
+      "en:breakfasts",
+      "en:spreads",
+      "en:sweet-spreads",
+      "en:confectionary-based-spreads",
+      "en:Petit-d\u00e9jeuners",
+      "en:Produits \u00e0 tartiner",
+      "en:Produits \u00e0 tartiner sucr\u00e9s",
+      "en:P\u00e2tes \u00e0 tartiner"
+    ],
+    "ingredients_text": "Sucre, huile de palme, NOISETTES 13%, cacao maigre 7,4%, LAIT \u00e9cr\u00e9m\u00e9 en poudre 6,6%, LACTOSERUM en poudre, \u00e9mulsifiants: l\u00e9cithines [SOJA), vanilline. Sans gluten.",
+    "nutriments": {
+      "sugars_100g": 56.3,
+      "fat_100g": 30.9,
+      "saturated-fat_100g": 10.6,
+      "proteins_100g": 6.3,
+      "fiber_100g": null,
+      "salt_100g": 0.107
+    }
+  }
+}

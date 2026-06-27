@@ -1,0 +1,31 @@
+{
+  "code": "5000159407236",
+  "status": 1,
+  "product": {
+    "code": "5000159407236",
+    "product_name": "Mars",
+    "brands": "Mars, Mars Wrigley",
+    "nutriscore_grade": "e",
+    "categories_tags": [
+      "en:snacks",
+      "en:sweet-snacks",
+      "en:biscuits-and-cakes",
+      "en:cocoa-and-its-products",
+      "en:confectioneries",
+      "en:chocolate-candies",
+      "en:bars",
+      "en:candy-chocolate-bars",
+      "en:caramel-chocolate-bars",
+      "en:coated-chocolate-bar-without-biscuit"
+    ],
+    "ingredients_text": "sugar, glucose syrup, cocoa butter, milk powder, cocoa paste, sunflower oil,  skimmed milk powder, lactose, milk powder, lean cocoa, concentrated butter (milk), extract of malt barley, emulsifier (soy lecithin), salt, butter, palm, white egg powder, protein milk hydrolysate, natural vanilla extract",
+    "nutriments": {
+      "sugars_100g": 61.6,
+      "fat_100g": 16.8,
+      "saturated-fat_100g": 8.38,
+      "proteins_100g": 4.04,
+      "fiber_100g": 1.24,
+      "salt_100g": 0.42
+    }
+  }
+}

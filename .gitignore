@@ -1,0 +1,100 @@
+## .NET build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+artifacts/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+## NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+## User-specific / IDE
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+.vs/
+.idea/
+*.DotSettings.user
+*.sln.iml
+
+## Build tooling
+*.cache
+*.log
+*.tlog
+*.tmp
+*.temp
+*.pidb
+*.svclog
+*.scc
+*.bak
+*.swp
+*~
+
+## ASP.NET / publish
+publish/
+*.pubxml
+*.publishproj
+*.azurePubxml
+*.dbmdl
+*.jfm
+*.pfx
+*.publishsettings
+
+## Secrets & local config
+.env
+.env.*
+!.env.example
+secrets.json
+appsettings.Local.json
+appsettings.*.local.json
+
+## OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+## Playwright / E2E (if added later)
+playwright-report/
+playwright/.cache/
+test-results/
+blob-report/
+
+## JetBrains Rider
+.idea/
+*.sln.iml
+
+## VS Code (keep shared settings, ignore local)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json

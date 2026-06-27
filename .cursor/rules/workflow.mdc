@@ -1,6 +1,8 @@
 ---
-alwaysApply: false
+description: 
+alwaysApply: true
 ---
+
 # TDD Development Workflow — Nutrition Intelligence Agent
 
 ## Context
@@ -90,6 +92,8 @@ public NutritionInsights Score(Product product, CategoryAverages? averages)
 ---
 
 ## Phase 5: Code Review
+**Trace:** Update `docs/verification/{story-key}.md` — record reviewer model (khác implementer), date, outcome. Index: `docs/VERIFICATION.md`.
+
 Checklist trước khi báo done:
 - [ ] Tests XANH
 - [ ] Không bare try/catch
@@ -101,6 +105,8 @@ Checklist trước khi báo done:
 ---
 
 ## Phase 6: Integration Test (Playwright MCP)
+**Trace:** Ghi kết quả vào cùng file `docs/verification/{story-key}.md` (paste output). N/A nếu story chưa có HTTP endpoint.
+
 Sau khi `dotnet run` thành công, chạy Playwright MCP:
 - [ ] GET /products/3017620422003 → 200 + nutritionInsights non-empty
 - [ ] GET /products/invalid → 404
@@ -133,3 +139,4 @@ Bắt buộc có:
 3. KHÔNG dùng LLM/SK — mọi insights phải từ NutritionScoringEngine
 4. LUÔN chạy Playwright test trước khi báo story done
 5. LUÔN update story checkboxes sau mỗi task
+6. LUÔN update `docs/verification/{story-key}.md` khi hoàn thành Phase 5 hoặc Phase 6

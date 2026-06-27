@@ -1,0 +1,38 @@
+{
+  "count": 2,
+  "page": 1,
+  "page_count": 1,
+  "page_size": 20,
+  "products": [
+    {
+      "code": "1111111111111",
+      "product_name": "Spread A",
+      "brands": "Brand A",
+      "nutriscore_grade": "c",
+      "categories_tags": ["en:spreads"],
+      "nutriments": {
+        "sugars_100g": 20,
+        "fat_100g": 12,
+        "saturated-fat_100g": 4,
+        "proteins_100g": 4,
+        "fiber_100g": 2,
+        "salt_100g": 0.4
+      }
+    },
+    {
+      "code": "2222222222222",
+      "product_name": "Spread B",
+      "brands": "Brand B",
+      "nutriscore_grade": "b",
+      "categories_tags": ["en:spreads"],
+      "nutriments": {
+        "sugars_100g": 30,
+        "fat_100g": 18,
+        "saturated-fat_100g": 6,
+        "proteins_100g": 6,
+        "fiber_100g": 4,
+        "salt_100g": 0.6
+      }
+    }
+  ]
+}
