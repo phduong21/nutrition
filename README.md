@@ -52,7 +52,7 @@ Swagger is enabled only when `ASPNETCORE_ENVIRONMENT=Development` (the default i
 | `nutriscoreGrade` | string? | Open Food Facts Nutri-Score (`a`–`e`) |
 | `ingredientsText` | string? | Ingredient list |
 | `nutritionScore` | int | Rule-based score 0–100 |
-| `healthBand` | string | `Excellent` / `Good` / `Fair` / `Poor` |
+| `healthBand` | string | `Healthy` / `Moderate` / `Poor` / `Unknown` |
 | `nutritionInsights` | object | `summary`, `concerns`, `positives`, `disclaimer` |
 
 **Errors:**

@@ -38,7 +38,7 @@ public sealed class ProductService(FoodFetcher foodFetcher, NutritionScoringEngi
     private ProductAnalysis BuildAnalysis(Product product)
     {
         var score = scoringEngine.CalculateScore(product.Nutriments);
-        var band = scoringEngine.ClassifyHealthBand(score);
+        var band = scoringEngine.ClassifyHealthBand(product.Nutriments, score);
         var insights = scoringEngine.Score(product, categoryAverages: null);
 
         return new ProductAnalysis(product, score, band, insights);

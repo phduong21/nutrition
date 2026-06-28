@@ -26,6 +26,22 @@ public sealed class NutritionWebApplicationFactory : WebApplicationFactory<Progr
                         "/api/v2/product/invalid",
                         System.Net.HttpStatusCode.OK,
                         TestFixtures.Load("off-not-found.json"));
+                    handler.Register(
+                        "/api/v2/product/nocode",
+                        System.Net.HttpStatusCode.OK,
+                        TestFixtures.Load("off-missing-code.json"));
+                    handler.Register(
+                        "/api/v2/product/9999999999999",
+                        System.Net.HttpStatusCode.OK,
+                        TestFixtures.Load("off-empty-nutriments.json"));
+                    handler.Register(
+                        "/api/v2/product/1111111111111",
+                        System.Net.HttpStatusCode.OK,
+                        TestFixtures.Load("off-grade-a.json"));
+                    handler.Register(
+                        "/api/v2/product/5000159407236",
+                        System.Net.HttpStatusCode.OK,
+                        TestFixtures.Load("off-5000159407236.json"));
                 },
                 configureSearch: handler =>
                     handler.Register(

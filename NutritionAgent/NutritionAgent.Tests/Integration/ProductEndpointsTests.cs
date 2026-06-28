@@ -76,4 +76,52 @@ public class ProductEndpointsTests : IClassFixture<NutritionWebApplicationFactor
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetProduct_WhitespaceBarcode_Returns400()
+    {
+        var response = await _client.GetAsync("/products/%20");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task GetProduct_OffProductMissingCode_Returns404()
+    {
+        var response = await _client.GetAsync("/products/nocode");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetProduct_EmptyNutriments_ReturnsUnknownHealthBand()
+    {
+        var response = await _client.GetAsync("/products/9999999999999");
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("Unknown", json.GetProperty("healthBand").GetString());
+    }
+
+    [Fact]
+    public async Task GetProduct_ValidEanBarcode_Returns200()
+    {
+        var response = await _client.GetAsync("/products/5000159407236");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Mars", json.GetProperty("productName").GetString());
+    }
+
+    [Fact]
+    public async Task GetAlternatives_SourceGradeA_Returns200EmptyArray()
+    {
+        var response = await _client.GetAsync("/products/1111111111111/alternatives");
+        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(0, json.GetProperty("alternatives").GetArrayLength());
+    }
 }

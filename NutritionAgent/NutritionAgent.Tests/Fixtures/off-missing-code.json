@@ -1,0 +1,17 @@
+{
+  "status": 1,
+  "product": {
+    "product_name": "Ghost Product",
+    "brands": "Test",
+    "nutriscore_grade": "c",
+    "categories_tags": ["en:snacks"],
+    "nutriments": {
+      "sugars_100g": 10,
+      "fat_100g": 5,
+      "saturated-fat_100g": 2,
+      "proteins_100g": 3,
+      "fiber_100g": 1,
+      "salt_100g": 0.2
+    }
+  }
+}

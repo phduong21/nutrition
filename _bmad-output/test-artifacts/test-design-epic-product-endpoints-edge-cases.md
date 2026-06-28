@@ -61,10 +61,10 @@ This document maps **observed implementation behavior** (from `FoodFetcher`, `Pr
 | ID | Input | Route | Expected (current impl.) | Level | Pri | Covered? |
 |----|-------|-------|--------------------------|-------|-----|----------|
 | BC-01 | *(empty segment)* `GET /products/` | product | Route mismatch → **404** (no handler) | API | P1 | ❌ |
-| BC-02 | Whitespace only `%20` / `%09%09` | both | **400** problem+json, detail mentions barcode required | Unit + API | P0 | ❌ |
-| BC-03 | `invalid` (letters) | both | OFF `status:0` → **404** | API | P0 | ✅ partial |
+| BC-02 | Whitespace only `%20` / `%09%09` | both | **400** problem+json, detail mentions barcode required | Unit + API | P0 | ✅ |
+| BC-03 | `invalid` (letters) | both | OFF `status:0` → **404** | API | P0 | ✅ |
 | BC-04 | `1` or `12` (too short) | both | OFF not found → **404** | API | P1 | ❌ |
-| BC-05 | 14-digit valid EAN `5000159407236` | both | **200** | API | P0 | ❌ |
+| BC-05 | 14-digit valid EAN `5000159407236` | both | **200** | API | P0 | ✅ |
 | BC-06 | 20+ digit string | both | OFF not found or upstream error → **404** or **502** | API | P2 | ❌ |
 | BC-07 | `3017620422003!` or `abc-123` (special chars) | both | URL-encoded path; OFF **404** (no local format check) | API | P1 | ❌ |
 | BC-08 | Path traversal attempt `..%2F..` | both | Framework routing rejection or **404**; must not escape app root | API | P1 | ❌ |
@@ -86,7 +86,7 @@ This document maps **observed implementation behavior** (from `FoodFetcher`, `Pr
 
 | ID | OFF payload shape | Expected product response | Level | Pri |
 |----|-------------------|---------------------------|-------|-----|
-| NM-01 | `nutriments` key absent | **200**; all nutriments JSON fields `null`; `nutritionScore` **100**; `healthBand` **Healthy** | Unit + API | P0 |
+| NM-01 | `nutriments` key absent | **200**; all nutriments JSON fields `null`; `nutritionScore` **100**; `healthBand` **Unknown** | Unit + API | P0 |
 | NM-02 | `nutriments: {}` (all fields absent) | Same as NM-01 | Unit | P0 |
 | NM-03 | Partial: only `sugars_100g` + `salt_100g` | **200**; score penalized only on present fields; missing fields ignored | Unit | P1 |
 | NM-04 | `fiber_100g: null` (Nutella fixture) | **200**; no fiber positive flag; score unchanged for fiber | Unit | ✅ |
@@ -165,7 +165,7 @@ This document maps **observed implementation behavior** (from `FoodFetcher`, `Pr
 | PD-02 | HTTP 200, `product: null` | **404** | Unit | P1 |
 | PD-03 | HTTP 404 | **404** | Unit | ❌ explicit |
 | PD-04 | HTTP 500/503 | **502** | Unit | ✅ |
-| PD-05 | HTTP 200, valid status, **missing `code`** | Mapper `InvalidOperationException` → **500** ⚠️ | Unit + API | P0 |
+| PD-05 | HTTP 200, valid status, **missing `code`** | **404** (invalid OFF payload) | Unit + API | P0 |
 | PD-06 | Missing `product_name`, `brands` | **200**; empty strings | Unit | P1 |
 | PD-07 | Missing `ingredients_text` | **200**; `ingredientsText: null` | Unit | P2 |
 | PD-08 | Malformed JSON / empty body | Deserialization failure → **500** ⚠️ | Unit | P1 |
@@ -208,8 +208,8 @@ This document maps **observed implementation behavior** (from `FoodFetcher`, `Pr
 
 | ID | Cat | Description | P | I | Score | Mitigation |
 |----|-----|-------------|---|---|-------|------------|
-| R-001 | DATA | Null nutriments → score 100 / Healthy | 2 | 3 | 6 | Add `Unknown` band when &lt;N fields present; test NM-01 |
-| R-002 | TECH | Missing barcode in OFF payload → 500 | 2 | 3 | 6 | Catch in mapper/fetcher → 404; test PD-05 |
+| R-001 | DATA | Null nutriments → score 100 / Healthy | 2 | 3 | 6 | ✅ Fixed: `Unknown` band when all nutriments null |
+| R-002 | TECH | Missing barcode in OFF payload → 500 | 2 | 3 | 6 | ✅ Fixed: `NotFound` before mapper |
 | R-003 | BUS | 400 vs 404 for invalid barcode | 2 | 2 | 4 | Align PRD or add format validation |
 | R-004 | DATA | Alternatives silently empty on search failure | 3 | 2 | 6 | Document contract; optional `warnings` field |
 | R-005 | PERF | Live search flaky in CI | 2 | 2 | 4 | Stub search in PR; live in nightly only |

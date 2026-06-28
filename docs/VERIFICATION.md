@@ -24,6 +24,7 @@ Agents **must** update the per-story log when claiming a phase is done.
 | 3.1 | [3-1-readme-openapi.md](verification/3-1-readme-openapi.md) | Pending | N/A |
 | 3.2 | [3-2-playwright.md](verification/3-2-playwright.md) | Pending | ✅ |
 | 3.3 | [3-3-openapi-export.md](verification/3-3-openapi-export.md) | Pending | N/A |
+| P0 | [p0-edge-case-fixes.md](verification/p0-edge-case-fixes.md) | Pending | Optional |
 
 ## When Phase 6 applies
 
@@ -45,7 +46,7 @@ Agents **must** update the per-story log when claiming a phase is done.
 ## MVP test summary (2026-06-27)
 
 ```
-dotnet test → 27 passed, 0 failed
+dotnet test → 42 passed, 0 failed
 ```
 
 Live curl (2026-06-27, post Search-a-licious migration):

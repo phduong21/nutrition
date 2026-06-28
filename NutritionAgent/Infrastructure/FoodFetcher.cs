@@ -35,6 +35,9 @@ public sealed class FoodFetcher(HttpClient productClient, HttpClient searchClien
             if (payload is null || payload.Status != 1 || payload.Product is null)
                 return Result<Product>.Failure(new ServiceError(ErrorKind.NotFound, $"Product '{barcode}' was not found."));
 
+            if (string.IsNullOrWhiteSpace(payload.Product.Code) && string.IsNullOrWhiteSpace(payload.Code))
+                return Result<Product>.Failure(new ServiceError(ErrorKind.NotFound, $"Product '{barcode}' was not found."));
+
             return Result<Product>.Success(OpenFoodFactsProductMapper.Map(payload));
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)

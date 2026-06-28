@@ -83,6 +83,22 @@ public sealed class NutritionScoringEngine
         return HealthBand.Poor;
     }
 
+    public HealthBand ClassifyHealthBand(Nutriments nutriments, int score)
+    {
+        if (!HasSufficientNutrientData(nutriments))
+            return HealthBand.Unknown;
+
+        return ClassifyHealthBand(score);
+    }
+
+    public static bool HasSufficientNutrientData(Nutriments nutriments) =>
+        nutriments.Sugars100g is not null
+        || nutriments.Fat100g is not null
+        || nutriments.SaturatedFat100g is not null
+        || nutriments.Proteins100g is not null
+        || nutriments.Fiber100g is not null
+        || nutriments.Salt100g is not null;
+
     private static string FlagConcerns(Nutriments nutriments)
     {
         var flags = new List<string>();
