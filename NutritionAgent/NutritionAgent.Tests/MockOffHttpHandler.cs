@@ -4,6 +4,14 @@ using NutritionAgent.Infrastructure;
 
 namespace NutritionAgent.Tests;
 
+internal sealed class ThrowingHttpHandler(Exception exception) : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken) =>
+        Task.FromException<HttpResponseMessage>(exception);
+}
+
 internal sealed class MockOffHttpHandler : HttpMessageHandler
 {
     private readonly Dictionary<string, (HttpStatusCode Status, string Body)> _responses = new(StringComparer.OrdinalIgnoreCase);
@@ -55,14 +63,26 @@ internal static class TestFixtures
 
     public static FoodFetcher CreateFoodFetcher(
         Action<MockOffHttpHandler>? configureProduct = null,
-        Action<MockOffHttpHandler>? configureSearch = null)
+        Action<MockOffHttpHandler>? configureSearch = null,
+        HttpMessageHandler? productHandlerOverride = null)
     {
-        var productHandler = new MockOffHttpHandler();
-        configureProduct?.Invoke(productHandler);
-        var productClient = new HttpClient(productHandler)
+        HttpClient productClient;
+        if (productHandlerOverride is not null)
         {
-            BaseAddress = new Uri("https://world.openfoodfacts.org/")
-        };
+            productClient = new HttpClient(productHandlerOverride)
+            {
+                BaseAddress = new Uri("https://world.openfoodfacts.org/")
+            };
+        }
+        else
+        {
+            var productHandler = new MockOffHttpHandler();
+            configureProduct?.Invoke(productHandler);
+            productClient = new HttpClient(productHandler)
+            {
+                BaseAddress = new Uri("https://world.openfoodfacts.org/")
+            };
+        }
 
         var searchHandler = new MockOffHttpHandler();
         configureSearch?.Invoke(searchHandler);

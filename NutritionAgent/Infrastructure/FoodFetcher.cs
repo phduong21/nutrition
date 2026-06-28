@@ -18,22 +18,31 @@ public sealed class FoodFetcher(HttpClient productClient, HttpClient searchClien
         if (string.IsNullOrWhiteSpace(barcode))
             return Result<Product>.Failure(new ServiceError(ErrorKind.InvalidInput, "Barcode is required."));
 
-        var response = await productClient.GetAsync($"api/v2/product/{barcode}.json", cancellationToken);
+        try
+        {
+            var response = await productClient.GetAsync($"api/v2/product/{barcode}.json", cancellationToken);
 
-        if (response.StatusCode is HttpStatusCode.NotFound)
-            return Result<Product>.Failure(new ServiceError(ErrorKind.NotFound, $"Product '{barcode}' was not found."));
+            if (response.StatusCode is HttpStatusCode.NotFound)
+                return Result<Product>.Failure(new ServiceError(ErrorKind.NotFound, $"Product '{barcode}' was not found."));
 
-        if (!response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
+                return Result<Product>.Failure(new ServiceError(
+                    ErrorKind.UpstreamFailure,
+                    $"Open Food Facts returned {(int)response.StatusCode}."));
+
+            var payload = await DeserializeAsync<OpenFoodFactsProductResponse>(response, cancellationToken);
+
+            if (payload is null || payload.Status != 1 || payload.Product is null)
+                return Result<Product>.Failure(new ServiceError(ErrorKind.NotFound, $"Product '{barcode}' was not found."));
+
+            return Result<Product>.Success(OpenFoodFactsProductMapper.Map(payload));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+        {
             return Result<Product>.Failure(new ServiceError(
                 ErrorKind.UpstreamFailure,
-                $"Open Food Facts returned {(int)response.StatusCode}."));
-
-        var payload = await DeserializeAsync<OpenFoodFactsProductResponse>(response, cancellationToken);
-
-        if (payload is null || payload.Status != 1 || payload.Product is null)
-            return Result<Product>.Failure(new ServiceError(ErrorKind.NotFound, $"Product '{barcode}' was not found."));
-
-        return Result<Product>.Success(OpenFoodFactsProductMapper.Map(payload));
+                "Open Food Facts request failed."));
+        }
     }
 
     public async Task<Result<IReadOnlyList<Product>>> SearchAlternativesAsync(

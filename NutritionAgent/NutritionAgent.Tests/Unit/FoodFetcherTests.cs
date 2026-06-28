@@ -52,6 +52,45 @@ public class FoodFetcherTests
     }
 
     [Fact]
+    public async Task GetProductAsync_HttpRequestException_ReturnsUpstreamFailure()
+    {
+        var fetcher = TestFixtures.CreateFoodFetcher(
+            productHandlerOverride: new ThrowingHttpHandler(new HttpRequestException("network error")));
+
+        var result = await fetcher.GetProductAsync("3017620422003");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorKind.UpstreamFailure, result.Error!.Kind);
+    }
+
+    [Fact]
+    public async Task GetProductAsync_TaskCanceledException_ReturnsUpstreamFailure()
+    {
+        var fetcher = TestFixtures.CreateFoodFetcher(
+            productHandlerOverride: new ThrowingHttpHandler(new TaskCanceledException("timeout")));
+
+        var result = await fetcher.GetProductAsync("3017620422003");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorKind.UpstreamFailure, result.Error!.Kind);
+    }
+
+    [Fact]
+    public async Task GetProductAsync_MalformedJson_ReturnsUpstreamFailure()
+    {
+        var fetcher = TestFixtures.CreateFoodFetcher(configureProduct: handler =>
+            handler.Register(
+                "/api/v2/product/badjson",
+                HttpStatusCode.OK,
+                "not-json"));
+
+        var result = await fetcher.GetProductAsync("badjson");
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorKind.UpstreamFailure, result.Error!.Kind);
+    }
+
+    [Fact]
     public void BuildSearchQuery_PrefersEnglishSlugTag()
     {
         var tags = new[]
